@@ -1,0 +1,73 @@
+//
+//  Prefix header
+//
+//  The contents of this file are implicitly included at the beginning of every source file.
+//
+
+#import <Availability.h>
+
+#ifndef __IPHONE_5_0
+#warning "This project uses features only available in iOS SDK 5.0 and later."
+#endif
+
+#ifdef __OBJC__
+	#import <UIKit/UIKit.h>
+	#import <Foundation/Foundation.h>
+	#import "UIDevice+Additions.h"
+	#import "UIFactory.h"
+	#import "AppDelegate.h"
+	#import "UIView+Additions.h"
+	#import <sqlite3.h>
+
+	#define CarAppDelegate (AppDelegate*)[[UIApplication sharedApplication] delegate]
+	#define ULAW
+	#define ViewBnd_Left		  0.0
+	#define ViewBnd_Top			106.0
+	#define ViewBnd_Width		768.0
+	#define ViewBnd_Height		918.0
+	#define BaseBarHeight   	120.0
+	#define BaseLowerPos		854.0
+
+	#define MidX			384.0
+	#define MaxDrawHgt		380.0//512.0
+	#define MidDrawHgt		448.0
+	#define MedDrawHgt		320.0
+	#define MinDrawHgt		210.0
+	#define BaseDrawPos		512.0
+
+	/// Cone of view is based on RadarRadius*Cos(0.5/2),RadarRadius*Sin(0.5/2)
+	#define RadarConeY		-94.013
+	#define RadarConeX1		-368.19
+	#define RadarConeX2		368.19
+
+	#define RadarDiamtr		760.0
+	#define RadarRadius		380.0
+	#define RadarCnterX		384.0
+	#define RadarCnterY		512.0
+	#define SonarSqrDelta	180.0
+	#define HorizShift		0.5
+
+	#define kHeadingTintColor [UIColor colorWithRed:89.0/255 green:46.0/255 blue:143.0/255 alpha:1.0]
+	#define kRecentTableExist	@"SELECT CASE WHEN tbl_name = 'recent' THEN 1 ELSE 0 END FROM sqlite_master WHERE tbl_name = 'recent' AND type = 'table'"
+
+	#ifndef LOGGING_ENABLED
+		#ifdef DEBUGLOGGING									// if the Flag is on, then logging is ON.
+			#define LOGGING_ENABLED     1
+		#else
+			#define LOGGING_ENABLED     1
+		#endif
+	#endif
+
+
+	#ifndef FILELOGGING_ENABLED
+		#define FILELOGGING_ENABLED		1					// make changes here, to have logging also sent to a file
+	#endif
+
+	#ifndef STACKLOGGING_ENABLED
+		#define STACKLOGGING_ENABLED	0					// make changes here, to include a Stack Trace
+	#endif
+
+	#define LOGMAXFILESIZE              100000000			// up it to 100 MB
+	#import "SNLog.h"
+
+#endif
