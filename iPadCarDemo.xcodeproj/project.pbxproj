@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		42A5D1BC18E245C100E8D39F /* CDDealerOperations.m in Sources */ = {isa = PBXBuildFile; fileRef = 42A5D1BB18E245C100E8D39F /* CDDealerOperations.m */; };
+		42A5D1BD18E245C100E8D39F /* CDDealerOperations.m in Sources */ = {isa = PBXBuildFile; fileRef = 42A5D1BB18E245C100E8D39F /* CDDealerOperations.m */; };
 		42E0000118B3286E00F463D1 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 42E0000018B3286E00F463D1 /* UIKit.framework */; };
 		42E0000718B3286E00F463D1 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 42E0000518B3286E00F463D1 /* InfoPlist.strings */; };
 		42E0000918B3286E00F463D1 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 42E0000818B3286E00F463D1 /* main.m */; };
@@ -54,8 +56,6 @@
 		42E0008A18B3E26400F463D1 /* CDDealerInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 42E0008818B3E26400F463D1 /* CDDealerInfo.m */; };
 		42E0008D18B3E7F400F463D1 /* CDDealerAddress.m in Sources */ = {isa = PBXBuildFile; fileRef = 42E0008C18B3E7F400F463D1 /* CDDealerAddress.m */; };
 		42E0008E18B3E7F400F463D1 /* CDDealerAddress.m in Sources */ = {isa = PBXBuildFile; fileRef = 42E0008C18B3E7F400F463D1 /* CDDealerAddress.m */; };
-		42E0009118B3E80F00F463D1 /* CDDealerOperations.m in Sources */ = {isa = PBXBuildFile; fileRef = 42E0009018B3E80F00F463D1 /* CDDealerOperations.m */; };
-		42E0009218B3E80F00F463D1 /* CDDealerOperations.m in Sources */ = {isa = PBXBuildFile; fileRef = 42E0009018B3E80F00F463D1 /* CDDealerOperations.m */; };
 		42E0009518B3E96700F463D1 /* CDDealerContactInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 42E0009418B3E96700F463D1 /* CDDealerContactInfo.m */; };
 		42E0009618B3E96700F463D1 /* CDDealerContactInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 42E0009418B3E96700F463D1 /* CDDealerContactInfo.m */; };
 		42E0009A18B3EAB500F463D1 /* MapViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 42E0009818B3EAB500F463D1 /* MapViewController.m */; };
@@ -5851,6 +5851,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		42A5D1BA18E245C100E8D39F /* CDDealerOperations.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CDDealerOperations.h; sourceTree = "<group>"; };
+		42A5D1BB18E245C100E8D39F /* CDDealerOperations.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CDDealerOperations.m; sourceTree = "<group>"; };
 		42E0000018B3286E00F463D1 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		42E0000418B3286E00F463D1 /* iPadCarDemo-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "iPadCarDemo-Info.plist"; sourceTree = "<group>"; };
 		42E0000618B3286E00F463D1 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -5901,8 +5903,6 @@
 		42E0008818B3E26400F463D1 /* CDDealerInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CDDealerInfo.m; sourceTree = "<group>"; };
 		42E0008B18B3E7F400F463D1 /* CDDealerAddress.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CDDealerAddress.h; sourceTree = "<group>"; };
 		42E0008C18B3E7F400F463D1 /* CDDealerAddress.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CDDealerAddress.m; sourceTree = "<group>"; };
-		42E0008F18B3E80F00F463D1 /* CDDealerOperations.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CDDealerOperations.h; path = ../../../../Documents/CDDealerOperations.h; sourceTree = "<group>"; };
-		42E0009018B3E80F00F463D1 /* CDDealerOperations.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CDDealerOperations.m; path = ../../../../Documents/CDDealerOperations.m; sourceTree = "<group>"; };
 		42E0009318B3E96700F463D1 /* CDDealerContactInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CDDealerContactInfo.h; sourceTree = "<group>"; };
 		42E0009418B3E96700F463D1 /* CDDealerContactInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CDDealerContactInfo.m; sourceTree = "<group>"; };
 		42E0009718B3EAB500F463D1 /* MapViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MapViewController.h; sourceTree = "<group>"; };
@@ -8916,8 +8916,8 @@
 				42E0009418B3E96700F463D1 /* CDDealerContactInfo.m */,
 				42E0008B18B3E7F400F463D1 /* CDDealerAddress.h */,
 				42E0008C18B3E7F400F463D1 /* CDDealerAddress.m */,
-				42E0008F18B3E80F00F463D1 /* CDDealerOperations.h */,
-				42E0009018B3E80F00F463D1 /* CDDealerOperations.m */,
+				42A5D1BA18E245C100E8D39F /* CDDealerOperations.h */,
+				42A5D1BB18E245C100E8D39F /* CDDealerOperations.m */,
 				42E000B018B6BBE300F463D1 /* CarModel.h */,
 				42E000B118B6BBE300F463D1 /* CarModel.m */,
 			);
@@ -17769,9 +17769,9 @@
 				42E0006318B343F800F463D1 /* DateUtil.m in Sources */,
 				42E0003C18B32B8D00F463D1 /* UIImage+ImageEffects.m in Sources */,
 				42E0003818B32B1000F463D1 /* DetailiPadViewController.m in Sources */,
-				42E0009218B3E80F00F463D1 /* CDDealerOperations.m in Sources */,
 				42E0006718B343F800F463D1 /* UIUtil.m in Sources */,
 				42E000A518B5DB5600F463D1 /* SonarView.m in Sources */,
+				42A5D1BD18E245C100E8D39F /* CDDealerOperations.m in Sources */,
 				42E0005318B343E800F463D1 /* NSString+Additions.m in Sources */,
 				42E000B318B6BBE300F463D1 /* CarModel.m in Sources */,
 				42E000AF18B6B63600F463D1 /* SNLog.m in Sources */,
@@ -17799,7 +17799,6 @@
 				42E0001318B3286E00F463D1 /* CarDisplayViewController.m in Sources */,
 				42E0003B18B32B8D00F463D1 /* UIImage+ImageEffects.m in Sources */,
 				42E0009A18B3EAB500F463D1 /* MapViewController.m in Sources */,
-				42E0009118B3E80F00F463D1 /* CDDealerOperations.m in Sources */,
 				42E0005418B343E800F463D1 /* StringFunctions.m in Sources */,
 				42E0000D18B3286E00F463D1 /* AppDelegate.m in Sources */,
 				42E0228218B756D600F463D1 /* ASCollectionViewStackLayout.m in Sources */,
@@ -17814,6 +17813,7 @@
 				42E0008D18B3E7F400F463D1 /* CDDealerAddress.m in Sources */,
 				42E000AE18B6B63600F463D1 /* SNLog.m in Sources */,
 				42E0008118B3559800F463D1 /* UIDevice+Additions.m in Sources */,
+				42A5D1BC18E245C100E8D39F /* CDDealerOperations.m in Sources */,
 				42E000A018B3FFC900F463D1 /* CDDealerData.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
