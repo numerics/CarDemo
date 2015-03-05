@@ -332,29 +332,29 @@
 //
 // A helper method to set just the line break mode of the given UIButton.
 //
-+ (void) button:(UIButton*)button setLineBreakMode:(NSLineBreakMode)lineBreakMode
-{
-	if (button != nil)
-	{
-		button.titleLabel.lineBreakMode = lineBreakMode;
-	}
-}
-
+//+ (void) button:(UIButton*)button setLineBreakMode:(NSLineBreakMode)lineBreakMode
+//{
+//	if (button != nil)
+//	{
+//		button.titleLabel.lineBreakMode = lineBreakMode;
+//	}
+//}
 //
-// A helper method to set just the text alignment of the given UIButton.
-//
-+ (void) button:(UIButton*)button setTextAlignment:(NSTextAlignment)textAlignment
-{
-	if (button != nil && [button respondsToSelector:@selector(titleLabel)])
-	{
-		NSObject* aLabel = [button titleLabel];
-		
-		if ([aLabel isKindOfClass:[UILabel class]])
-		{
-			((UILabel*)aLabel).textAlignment = textAlignment;
-		}
-	}
-}
+////
+//// A helper method to set just the text alignment of the given UIButton.
+////
+//+ (void) button:(UIButton*)button setTextAlignment:(NSTextAlignment)textAlignment
+//{
+//	if (button != nil && [button respondsToSelector:@selector(titleLabel)])
+//	{
+//		NSObject* aLabel = [button titleLabel];
+//		
+//		if ([aLabel isKindOfClass:[UILabel class]])
+//		{
+//			((UILabel*)aLabel).textAlignment = textAlignment;
+//		}
+//	}
+//}
 
 //
 // A helper method to set just the font of the given UIButton.

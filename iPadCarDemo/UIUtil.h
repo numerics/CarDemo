@@ -111,12 +111,12 @@
 //
 // A helper method to set just the line break mode of the given UIButton.
 //
-+ (void) button:(UIButton*)button setLineBreakMode:(UILineBreakMode)lineBreakMode;
+//+ (void) button:(UIButton*)button setLineBreakMode:(UILineBreakMode)lineBreakMode;
 
 //
 // A helper method to set just the text alignment of the given UIButton.
 //
-+ (void) button:(UIButton*)button setTextAlignment:(UITextAlignment)textAlignment;
+//+ (void) button:(UIButton*)button setTextAlignment:(UITextAlignment)textAlignment;
 
 //
 // A helper method to set just the font of the given UIButton.

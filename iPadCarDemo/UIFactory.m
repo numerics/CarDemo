@@ -1923,22 +1923,6 @@ static const char * getPropertyType(objc_property_t property)
 }
 
 //
-// A helper method to set just the line break mode of the given UIButton.
-//
-- (void) button:(UIButton*)button setLineBreakMode:(NSLineBreakMode)lineBreakMode
-{
-	[UIUtil button:(UIButton*)button setLineBreakMode:(NSLineBreakMode)lineBreakMode];
-}
-
-//
-// A helper method to set just the text alignment of the given UIButton.
-//
-- (void) button:(UIButton*)button setTextAlignment:(NSTextAlignment)textAlignment
-{
-	[UIUtil button:(UIButton*)button setTextAlignment:(NSTextAlignment)textAlignment];
-}
-
-//
 // A helper method to set just the font of the given UIButton.
 //
 - (void) button:(UIButton*)button setFont:(UIFont*)font
