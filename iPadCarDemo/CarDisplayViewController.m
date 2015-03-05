@@ -160,6 +160,9 @@
 		NSString *imageName = [brand objectForKey:@"Main Image"];			/// NEED TO FIX, Brands Table uses Main Image vs MainImage in Autos Table...
 		
 		cell.carImage.image = [UIImage imageNamed:imageName];
+//		dispatch_async(dispatch_get_main_queue(), ^(void) {							/// Tried to solve the SnapShot bug in iOS... does not work
+//			cell.carImage.image = [UIImage imageNamed:imageName];
+//		});
 		cell.brandName.text = [brand objectForKey:@"Brand"];
 	}
 	else if (self.currentMode == 1)		// CarMake Mode, Stack Layout
