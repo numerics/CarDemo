@@ -6,40 +6,56 @@
 
 @implementation NSString (Additions)
 
--(int)occurencesOfSubstring:(NSString *)substr 
+-(int)occurencesOfSubstring:(NSString *)substr
 {
 	//consider that for this, it may be(though I'm not sure) faster to use the less-robust outlined below.
 	return [self occurencesOfSubstring:substr options:NSCaseInsensitiveSearch];
 }
 
--(int)occurencesOfSubstring:(NSString *)substr options:(int)opt 
+-(int)occurencesOfSubstring:(NSString *)substr options:(int)opt
 {
 	/* if one wanted to make a much shorter(is it faster?), but rather less robust implementation, one would do:
 	 return [[self componentsSeparatedByString:substr] count] - 1; */
-	int slen = [self length];
-	int position = 0;
+	long slen = [self length];
+	long position = 0;
 	NSRange currentRange;
 	BOOL flag = YES;
 	int count = 0;
-	do 
+	do
 	{
 		currentRange = [self rangeOfString:substr
 								   options:opt
 									 range:NSMakeRange(position, slen-position)];
 		
-		if (currentRange.location == NSNotFound) 
+		if (currentRange.location == NSNotFound)
 		{
 			flag = NO;
-		} 
-		else 
+		}
+		else
 		{
 			count++;
 			position = currentRange.location + currentRange.length;
 		}
-	} 
+	}
 	while (flag == YES);
 	
 	return count;
+}
+
+-(id)objectFromJSONString
+{
+	NSData *data = [self dataUsingEncoding:NSUTF8StringEncoding];
+	
+	NSError *error;
+	
+	id jsonObj = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error];
+	
+	if (!jsonObj)
+	{
+		return nil;
+	}
+	
+	return jsonObj;
 }
 
 - (NSArray *)tokensSeparatedByCharactersFromSet:(NSCharacterSet *)separatorSet
@@ -108,103 +124,103 @@
 	if([self length] < [otherString length])      { return NSOrderedAscending; }
 	else if([self length] > [otherString length]) { return NSOrderedDescending; }
 	//if same length, use alphabetical ordering.
-	else                                          { return [self compare:otherString]; } 
+	else                                          { return [self compare:otherString]; }
 }
 
 - (BOOL)smartWriteToFile:(NSString *)path atomically:(BOOL)atomically
 {
-	if([self isEqualToString:[NSString stringWithContentsOfFile:path encoding:NSASCIIStringEncoding error:NULL]]) 
-	{ 
-		return YES; 
+	if([self isEqualToString:[NSString stringWithContentsOfFile:path encoding:NSASCIIStringEncoding error:NULL]])
+	{
+		return YES;
 	}
 	return [self writeToFile:path atomically:atomically encoding:NSASCIIStringEncoding error:NULL];
 }
 
 - (unsigned)lineCount
 {
-    unsigned count = 0;
-    unsigned location = 0;
+	unsigned count = 0;
+	NSUInteger location = 0;
 	
-    while (location < [self length])
-    {
-        // get next line start and set current location to it
-        [self getLineStart:nil end:&location contentsEnd:nil forRange:NSMakeRange(location,1)];
-        count += 1;
-    }
+	while (location < [self length])
+	{
+		// get next line start and set current location to it
+		[self getLineStart:nil end:&location contentsEnd:nil forRange:NSMakeRange(location,1)];
+		count += 1;
+	}
 	
-    return count;
+	return count;
 }
 
 - (BOOL)containsString:(NSString *)aString
 {
-    return [self containsString:aString ignoringCase:NO];
+	return [self containsString:aString ignoringCase:NO];
 }
 
 - (BOOL)containsString:(NSString *)aString ignoringCase:(BOOL)flag
 {
-    unsigned mask = (flag ? NSCaseInsensitiveSearch : 0);
-    NSRange range = [self rangeOfString:aString options:mask];
-    return (range.length > 0);
+	unsigned mask = (flag ? NSCaseInsensitiveSearch : 0);
+	NSRange range = [self rangeOfString:aString options:mask];
+	return (range.length > 0);
 }
 
 -(NSArray *) splitToSize:(unsigned)size
 {
-    NSMutableArray *splitStrings = [NSMutableArray array];
+	NSMutableArray *splitStrings = [NSMutableArray array];
 	
-    int count = 0;
-    int i = 0;
-    unsigned loc = 0;
-    NSString *tempString;
+	NSUInteger count = 0;
+	int i = 0;
+	NSUInteger loc = 0;
+	NSString *tempString;
 	
-    count = [self length] / size;
+	count = [self length] / size;
 	
 	
-    for (i = 0; i < count; i++)
+	for (i = 0; i < count; i++)
 	{
-        loc = size * i;
+		loc = size * i;
 		
-        tempString = [self substringWithRange:NSMakeRange(loc,size)];
-        [splitStrings addObject: tempString];
-        //[splitStrings addObject: [tempString copy]];
+		tempString = [self substringWithRange:NSMakeRange(loc,size)];
+		[splitStrings addObject: tempString];
+		//[splitStrings addObject: [tempString copy]];
 	}
 	
-    loc = size * count;
+	loc = size * count;
 	
-    tempString = [self substringFromIndex:loc];
+	tempString = [self substringFromIndex:loc];
 	
-    [splitStrings addObject: tempString];
-    //[splitStrings addObject: [tempString copy]];
+	[splitStrings addObject: tempString];
+	//[splitStrings addObject: [tempString copy]];
 	
-    return splitStrings;
+	return splitStrings;
 }
 
 -(NSString *)removeTabsAndReturns
 {
-    NSMutableString *outputString = [NSMutableString string];
-    NSCharacterSet *charSet;
-    NSString *temp;
+	NSMutableString *outputString = [NSMutableString string];
+	NSCharacterSet *charSet;
+	NSString *temp;
 	
-    NSScanner *scanner = [NSScanner scannerWithString:self];
+	NSScanner *scanner = [NSScanner scannerWithString:self];
 	
-    charSet = [NSCharacterSet characterSetWithCharactersInString:@"\n\r\t"];
+	charSet = [NSCharacterSet characterSetWithCharactersInString:@"\n\r\t"];
 	
-    while ([scanner scanUpToCharactersFromSet:charSet intoString:&temp])
+	while ([scanner scanUpToCharactersFromSet:charSet intoString:&temp])
 	{
 		[outputString appendString:temp];
 		
 	}
-    return [outputString copy];
+	return [outputString copy];
 }
 
 -(NSString*)newlineToCR
 {
-    NSMutableString *str = [NSMutableString string];
-    [str setString: self];
+	NSMutableString *str = [NSMutableString string];
+	[str setString: self];
 	
-    [str replaceOccurrencesOfString:@"\n" withString:@"\r" 
-							options:NSLiteralSearch 
+	[str replaceOccurrencesOfString:@"\n" withString:@"\r"
+							options:NSLiteralSearch
 							  range:NSMakeRange (0, [str length])];
-    return [str copy];
+	return [str copy];
 }
 
 -(NSString *)safeFilePath
@@ -228,34 +244,34 @@
 
 -(NSRange)whitespaceRangeForRange:(NSRange)characterRange
 {
-    NSString *string = [self copy];
-    NSCharacterSet *whitespaceSet = [NSCharacterSet whitespaceAndNewlineCharacterSet];
-    unsigned int areamax = NSMaxRange(characterRange);
-    unsigned int length = [string length];
-    
-    NSRange start = [string rangeOfCharacterFromSet:whitespaceSet
+	NSString *string = [self copy];
+	NSCharacterSet *whitespaceSet = [NSCharacterSet whitespaceAndNewlineCharacterSet];
+	NSUInteger areamax = NSMaxRange(characterRange);
+	NSUInteger length = [string length];
+	
+	NSRange start = [string rangeOfCharacterFromSet:whitespaceSet
 											options:NSBackwardsSearch
 											  range:NSMakeRange(0, characterRange.location)];
-    
-    if (start.location == NSNotFound)
-    {
-        start.location = 0;
-    }  
-    else 
-    {
-        start.location = NSMaxRange(start);
-    }
-    
-    NSRange end = [string rangeOfCharacterFromSet:whitespaceSet
+	
+	if (start.location == NSNotFound)
+	{
+		start.location = 0;
+	}
+	else
+	{
+		start.location = NSMaxRange(start);
+	}
+	
+	NSRange end = [string rangeOfCharacterFromSet:whitespaceSet
 										  options:0
 											range:NSMakeRange(areamax, length - areamax)];
-    
-    if (end.location == NSNotFound)
-        end.location = length;
-    
-    NSRange searchRange = NSMakeRange(start.location, end.location - start.location); 
-    //last whitespace to next whitespace
-    return searchRange;
+	
+	if (end.location == NSNotFound)
+		end.location = length;
+	
+	NSRange searchRange = NSMakeRange(start.location, end.location - start.location);
+	//last whitespace to next whitespace
+	return searchRange;
 }
 
 -(NSString *)substringFrom:(NSInteger)from to:(NSInteger)to
@@ -274,6 +290,22 @@
 	return [self substringFromIndex:NSMaxRange (range)];
 }
 
-
+-(NSDictionary *)parametersFromQueryString
+{
+	NSMutableDictionary *parameters = [[NSMutableDictionary alloc] init];
+	NSArray *parameterArray = [self componentsSeparatedByString:@"&"];
+	
+	[parameterArray enumerateObjectsUsingBlock:^(NSString *pair, NSUInteger idx, BOOL *stop) {
+		
+		NSArray *pairArray = [pair componentsSeparatedByString:@"="];
+		
+		if(pairArray.count == 2)
+		{
+			[parameters setObject:[pairArray objectAtIndex:1] forKey:[pairArray objectAtIndex:0]];
+		}
+	}];
+	
+	return [NSDictionary dictionaryWithDictionary:parameters];
+}
 
 @end

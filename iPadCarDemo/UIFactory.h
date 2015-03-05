@@ -8,66 +8,67 @@
 
 typedef enum
 {
-    kNoAdjustment   = 0,
-    
-    kAdjustX        = 1,
-    kAdjustY        = 2,
-    kAdjustXY       = 3,
-    kAdjustWidth    = 4,
-    kAdjustHeight   = 8,
-    kAdjustWH       = 12,
-    kAdjustALL      = 15,
-    
-    kAdjustBASEPAD  = 16,
-    kAdjustXPAD     = kAdjustBASEPAD + kAdjustX,
-    kAdjustYPAD     = kAdjustBASEPAD + kAdjustY,
-    kAdjustXYPAD    = kAdjustBASEPAD + kAdjustXY,
-    kAdjustWPAD     = kAdjustBASEPAD + kAdjustWidth,
-    kAdjustHPAD     = kAdjustBASEPAD + kAdjustHeight,
-    kAdjustWHPAD    = kAdjustBASEPAD + kAdjustWH,
-    kAdjustALLPAD   = 32,
-    
-    kAdjust568      = 64,
-    kAdjustY568     = kAdjust568 + kAdjustY,
-    kAdjustH568     = kAdjust568 + kAdjustHeight,
-    
-    kAdjustCELL     = 128,
-    
+	kNoAdjustment   = 0,
+	
+	kAdjustX        = 1,
+	kAdjustY        = 2,
+	kAdjustXY       = 3,
+	kAdjustWidth    = 4,
+	kAdjustHeight   = 8,
+	kAdjustWH       = 12,
+	kAdjustALL      = 15,
+	
+	kAdjustBASEPAD  = 16,
+	kAdjustXPAD     = kAdjustBASEPAD + kAdjustX,
+	kAdjustYPAD     = kAdjustBASEPAD + kAdjustY,
+	kAdjustXYPAD    = kAdjustBASEPAD + kAdjustXY,
+	kAdjustWPAD     = kAdjustBASEPAD + kAdjustWidth,
+	kAdjustHPAD     = kAdjustBASEPAD + kAdjustHeight,
+	kAdjustWHPAD    = kAdjustBASEPAD + kAdjustWH,
+	kAdjustALLPAD   = 32,
+	
+	kAdjust568      = 64,
+	kAdjustY568     = kAdjust568 + kAdjustY,
+	kAdjustH568     = kAdjust568 + kAdjustHeight,
+	
+	kAdjustCELL     = 128,
+	
 }CGRectAdjust;
 
 @interface UIFactory : NSObject
 {
 	NSString        *appPrefix;
-    NSString        *appSuffix;         // for now, nil or _iPad... could add other, eg _iPh5
+	NSString        *appSuffix;         // for now, nil or _iPad... could add other, eg _iPh5
 	NSString        *appProduct;
-    
-    BOOL            iPad;
-    
+	
+	BOOL            iPad;
+	
 	UIColor         *backgroundColor;
-    
-    NSDictionary    *commonDict;
-    
+	
+	NSDictionary    *commonDict;
+	
 	UIImage			*dividerImage;
-    
+	
 	UIColor			*linkColorNormal;
-	UIColor			*linkColorHighlight;
+	UIColor			*defaultColorHighlight;
 	UIColor			*greyTextColor;
 	UIColor			*lightGreyTextColor;
 	UIImage			*loadingBackgroundImage;
-    
-    NSString        *_bundleName;
-    
-    NSMutableDictionary *_colorDictionary;
-    NSMutableDictionary *_fontDictionary;
-    NSMutableDictionary *_fontColorDictionary;
-    NSMutableDictionary *_imageDictionary;
-    NSDictionary        *_propertiesDictionary;
+	
+	NSString        *_bundleName;
+	
+	NSMutableDictionary		*_colorDictionary;
+	NSMutableDictionary		*_fontDictionary;
+	NSMutableDictionary		*_fontColorAlignDictionary;
+	NSMutableDictionary		*_imageDictionary;
+	NSDictionary			*_propertiesDictionary;
 }
 
 @property (nonatomic, readonly) BOOL isPortraitOrientation;
 @property (nonatomic, readonly) BOOL isLandscapeOrientation;
 
 @property (nonatomic, readonly) BOOL iPad;
+
 @property (nonatomic, strong) NSString      *appPrefix;
 @property (nonatomic, strong) NSString      *appSuffix;
 @property (nonatomic, strong) NSString      *appProduct;
@@ -80,7 +81,7 @@ typedef enum
 @property (nonatomic, strong) UIImage		*dividerImage;
 
 @property (nonatomic, strong) UIColor		*linkColorNormal;
-@property (nonatomic, strong) UIColor		*linkColorHighlight;
+@property (nonatomic, strong) UIColor		*defaultColorHighlight;
 @property (nonatomic, strong) UIColor		*greyTextColor;
 @property (nonatomic, strong) UIColor		*lightGreyTextColor;
 
@@ -192,6 +193,7 @@ typedef enum
 - (UIImage *)navigationBackgroundForBarMetrics:(UIBarMetrics)metrics;
 - (UIImage *)navigationBackgroundForIPadAndOrientation:(UIInterfaceOrientation)orientation;
 
+- (void) setupStatusBar:(UIView *)baseView;
 
 
 - (UIColor *)grayColor:(CGFloat)gray alpha:(CGFloat)alpha;
@@ -264,6 +266,12 @@ typedef enum
 - (NSString *) getFormattedRuntimeString:(NSInteger) runtime;
 
 - (NSString *) stringWithTimeInterval:(NSTimeInterval) timeInterval;
+
+/// Replacement for the deprecated sizeWithFont
+- (CGSize)sizeWithMyFont:(UIFont *)font withText:(NSString *)text withWidth:(CGFloat)width;
+
+- (CGSize)sizeWithMyFont:(UIFont *)font withText:(NSString *)text withWidth:(CGFloat)width lineBreakMode:(NSLineBreakMode)lineBreakMode;
+-(CGSize)frameForText:(NSString*)text sizeWithFont:(UIFont*)font constrainedToSize:(CGSize)size;
 
 //
 // Returns the size of the given title taking into account a font size reduction
@@ -382,12 +390,12 @@ typedef enum
 //
 // A helper method to set just the line break mode of the given UIButton.
 //
-- (void) button:(UIButton*)button setLineBreakMode:(UILineBreakMode)lineBreakMode;
+- (void) button:(UIButton*)button setLineBreakMode:(NSLineBreakMode)lineBreakMode;
 
 //
 // A helper method to set just the text alignment of the given UIButton.
 //
-- (void) button:(UIButton*)button setTextAlignment:(UITextAlignment)textAlignment;
+- (void) button:(UIButton*)button setTextAlignment:(NSTextAlignment)textAlignment;
 
 //
 // A helper method to set just the font of the given UIButton.

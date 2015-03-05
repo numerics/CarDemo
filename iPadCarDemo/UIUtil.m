@@ -47,7 +47,9 @@
 {
 	if (label != nil && label.text != nil)
 	{
-		CGSize idealSize = [label.text sizeWithFont:label.font];
+		CGSize idealSize = [[UIFactory sharedInstance] sizeWithMyFont:label.font withText:label.text withWidth:9999];// lineBreakMode:<#(NSLineBreakMode)#>
+		
+		//CGSize idealSize = [label.text sizeWithFont:label.font];
 		
 		if (idealSize.width >= 0 && idealSize.height >= 0)
 		{
@@ -64,7 +66,7 @@
 	//	if (label != nil)
 	//	{
 	//		CGRect labelFrame = label.frame;
-	//		
+	//
 	//		CGSize size = [self idealStringSize:label.text withWidth:labelFrame.size.width withFont:label.font];
 	//		if (size.height >= 0)
 	//		{
@@ -103,7 +105,8 @@
 	}
 	else
 	{
-		return [text sizeWithFont:font constrainedToSize:CGSizeMake(width, FLT_MAX) lineBreakMode:NSLineBreakByWordWrapping];
+		return [[UIFactory sharedInstance] sizeWithMyFont:font withText:text withWidth:width lineBreakMode:NSLineBreakByWordWrapping];
+		//return [text sizeWithFont:font constrainedToSize:CGSizeMake(width, FLT_MAX) lineBreakMode:NSLineBreakByWordWrapping];
 	}
 }
 
@@ -329,7 +332,7 @@
 //
 // A helper method to set just the line break mode of the given UIButton.
 //
-+ (void) button:(UIButton*)button setLineBreakMode:(UILineBreakMode)lineBreakMode
++ (void) button:(UIButton*)button setLineBreakMode:(NSLineBreakMode)lineBreakMode
 {
 	if (button != nil)
 	{
@@ -340,7 +343,7 @@
 //
 // A helper method to set just the text alignment of the given UIButton.
 //
-+ (void) button:(UIButton*)button setTextAlignment:(UITextAlignment)textAlignment
++ (void) button:(UIButton*)button setTextAlignment:(NSTextAlignment)textAlignment
 {
 	if (button != nil && [button respondsToSelector:@selector(titleLabel)])
 	{
@@ -472,7 +475,7 @@
 //
 // A helper method to defocus all subviews of a view
 //
-+ (void) resignFirstRespondersOf:(UIView*)parentView 
++ (void) resignFirstRespondersOf:(UIView*)parentView
 {
 	for (UIView* view in parentView.subviews)
 	{

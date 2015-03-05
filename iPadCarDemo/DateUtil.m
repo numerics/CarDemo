@@ -8,6 +8,14 @@
 
 @implementation DateUtil
 
+#define SECOND  1
+#define MINUTE  (SECOND * 60)
+#define HOUR    (MINUTE * 60)
+#define DAY     (HOUR   * 24)
+#define WEEK    (DAY    * 7)
+#define MONTH   (DAY    * 31)
+#define YEAR    (DAY    * 365.24)
+
 static NSTimeZone* TIME_ZONE_GMT = nil;
 static NSDateFormatter* DATE_FORMATTER_DATE_FROM_STRING = nil;
 static NSDateFormatter* DATE_FORMATTER_STRING_FROM_DATE = nil;
@@ -40,21 +48,21 @@ static NSDate* LASTDAY_CYEAR = nil;
 
 + (NSDate*) getDateByIgnoringTimeComponant:(NSDate*)date
 {
-    NSCalendar *myCalendar = [NSCalendar currentCalendar];
-
-    NSCalendarUnit dateComponentsMask = NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit;
-    NSDateComponents* dateComponents = [myCalendar components: dateComponentsMask fromDate: date];
-    dateComponents.hour = 0;
-    dateComponents.minute = 0;
-    dateComponents.second = 0;
-    return  [myCalendar dateFromComponents: dateComponents];
+	NSCalendar *myCalendar = [NSCalendar currentCalendar];
+	
+	NSCalendarUnit dateComponentsMask = NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit;
+	NSDateComponents* dateComponents = [myCalendar components: dateComponentsMask fromDate: date];
+	dateComponents.hour = 0;
+	dateComponents.minute = 0;
+	dateComponents.second = 0;
+	return  [myCalendar dateFromComponents: dateComponents];
 }
 
 //
 // Class initializer. Called only once before the class receives its first message.
 //
 + (void)initialize
-{	
+{
 	TIME_ZONE_GMT = [NSTimeZone timeZoneWithName:@"GMT"];
 	
 	DATE_FORMATTER_DATE_FROM_STRING = [[NSDateFormatter alloc] init];
@@ -77,18 +85,18 @@ static NSDate* LASTDAY_CYEAR = nil;
 	NSDateComponents* monthComponents = [gregorianCalendar components:(NSMonthCalendarUnit) fromDate:today];
 	
 	
-	NSInteger thisYear = [yearComponents year];	
+	NSInteger thisYear = [yearComponents year];
 	NSInteger thisMonth = [monthComponents month];
-			
+	
 	NSInteger lastDMN = [self lengthOfMonth:today];
-		
-	NSString *firstD = [NSString stringWithFormat: @"01/01/%d", thisYear];
-	NSString *lastD = [NSString stringWithFormat: @"12/31/%d", thisYear];
+	
+	NSString *firstD = [NSString stringWithFormat: @"01/01/%ld", (long)thisYear];
+	NSString *lastD = [NSString stringWithFormat: @"12/31/%ld", (long)thisYear];
 	FIRSTDAY_YEAR = [DateUtil dateFromString:firstD dateFormat:@"MM/dd/yyyy" defaultDate:nil];
 	LASTDAY_YEAR  = [DateUtil dateFromString:lastD dateFormat:@"MM/dd/yyyy" defaultDate:nil];
-
-	NSString *firstDM = [NSString stringWithFormat: @"%d/01/%d", thisMonth,thisYear];
-	NSString *lastDM = [NSString stringWithFormat: @"%d/%d/%d", thisMonth,lastDMN,thisYear];
+	
+	NSString *firstDM = [NSString stringWithFormat: @"%ld/01/%ld", (long)thisMonth,(long)thisYear];
+	NSString *lastDM = [NSString stringWithFormat: @"%ld/%ld/%ld", (long)thisMonth,(long)lastDMN,(long)thisYear];
 	FIRSTDAY_MONTH = [DateUtil dateFromString:firstDM dateFormat:@"MM/dd/yyyy" defaultDate:nil];
 	LASTDAY_MONTH  = [DateUtil dateFromString:lastDM dateFormat:@"MM/dd/yyyy" defaultDate:nil];
 	
@@ -96,16 +104,16 @@ static NSDate* LASTDAY_CYEAR = nil;
 	NSInteger endMonth = 3 * currQuarter;
 	NSInteger startMonth = endMonth - 2;
 	
-	NSString *qrtfirstDayLastMonth = [NSString stringWithFormat: @"%d/01/%d", endMonth,thisYear];
+	NSString *qrtfirstDayLastMonth = [NSString stringWithFormat: @"%ld/01/%ld", (long)endMonth,(long)thisYear];
 	NSInteger lastDayOfQrt = [self lengthOfMonth:[DateUtil dateFromString:qrtfirstDayLastMonth dateFormat:@"MM/dd/yyyy" defaultDate:nil]];
-	NSString *qrtFirstDay = [NSString stringWithFormat: @"%d/01/%d", startMonth,thisYear];
-	NSString *qrtLastDay = [NSString stringWithFormat: @"%d/%d/%d", endMonth,lastDayOfQrt,thisYear];
+	NSString *qrtFirstDay = [NSString stringWithFormat: @"%ld/01/%ld", (long)startMonth,(long)thisYear];
+	NSString *qrtLastDay = [NSString stringWithFormat: @"%ld/%ld/%ld", (long)endMonth,(long)lastDayOfQrt,(long)thisYear];
 	FIRSTDAY_QUARTER = [DateUtil dateFromString:qrtFirstDay dateFormat:@"MM/dd/yyyy" defaultDate:nil];
 	LASTDAY_QUARTER = [DateUtil dateFromString:qrtLastDay dateFormat:@"MM/dd/yyyy" defaultDate:nil];
 	
 	
 	// Sunday is represented by 1., Sat Day 7
-	NSInteger weekdayToday = [weekdayComponents weekday];	
+	NSInteger weekdayToday = [weekdayComponents weekday];
 	NSTimeInterval secondsInOneDay = 86400;
 	NSTimeInterval secondsTillFirstDay = 0;
 	NSTimeInterval secondsTillLastDay = 0;
@@ -197,7 +205,7 @@ static NSDate* LASTDAY_CYEAR = nil;
 			break;
 	}
 	
-	//	
+	//
 	// Calculate the next coming Monday at EXACTLY midnight 12:00 AM.
 	//
 	
@@ -211,8 +219,10 @@ static NSDate* LASTDAY_CYEAR = nil;
 	//NSLog(@"nextMondayAtMidnightStr [%@]", nextMondayAtMidnightStr);
 	NEXT_MONDAY = [DateUtil dateFromString:nextMondayAtMidnightStr dateFormat:@"MM/dd/yyyy HH:mm:ss" defaultDate:NEXT_MONDAY];
 	
-	NSLog(@"Next Monday at EXACTLY midnight is [%@]", [DateUtil stringFromDate:NEXT_MONDAY dateFormat:@"MM/dd/yyyy HH:mm:ss"]);	
+	//NSLog(@"Next Monday at EXACTLY midnight is [%@]", [DateUtil stringFromDate:NEXT_MONDAY dateFormat:@"MM/dd/yyyy HH:mm:ss"]);
 }
+
+
 
 //
 // Based on the current date/time returns the date of the this coming monday at exactly 12:00 AM.
@@ -323,7 +333,7 @@ static NSDate* LASTDAY_CYEAR = nil;
 	}
 	
 	return (toReturn == nil ? defaultDate : toReturn);
-
+	
 }
 
 //
@@ -344,6 +354,220 @@ static NSDate* LASTDAY_CYEAR = nil;
 	
 	return toReturn;
 	
+}
+/// FROM https://github.com/nikilster/NSDate-Time-Ago
+//  NSDate+NVTimeAgo.m
+//  Adventures
+//
+//  Created by Nikil Viswanathan on 4/18/13.
+//  Copyright (c) 2013 Nikil Viswanathan. All rights reserved.
+/*
+ ========================== Formatting Methods ==========================
+ 
+ */
++ (NSString *)formattedAsTimeAgo:(NSDate *)date
+{
+	//Now
+	NSDate *now = [NSDate date];
+	NSTimeInterval secondsSince = -(int)[date timeIntervalSinceDate:now];
+	
+	//Should never hit this but handle the future case
+	if(secondsSince < 0)
+		return @"In The Future";
+	
+	
+	// < 1 minute = "Just now"
+	if(secondsSince < MINUTE)
+		return @"Just now";
+	
+	
+	// < 1 hour = "x minutes ago"
+	if(secondsSince < HOUR)
+		return [DateUtil formatMinutesAgo:secondsSince];
+	
+	
+	// Today = "x hours ago"
+	if([self isSameDayAs:date now:now])
+		return [DateUtil formatAsToday:secondsSince];
+	
+	
+	// Yesterday = "Yesterday at 1:28 PM"
+	if([self isYesterday:date now:now])
+		return [DateUtil formatAsYesterday:date];
+	
+	
+	// < Last 7 days = "Friday at 1:48 AM"
+	if([self isLastWeek:secondsSince])
+		return [DateUtil formatAsLastWeek:date];
+	
+	
+	// < Last 30 days = "March 30 at 1:14 PM"
+	if([self isLastMonth:secondsSince])
+		return [DateUtil formatAsLastMonth:date];
+	
+	// < 1 year = "September 15"
+	if([self isLastYear:secondsSince])
+		return [DateUtil formatAsLastYear:date];
+	
+	// Anything else = "September 9, 2011"
+	return [DateUtil formatAsOther:date];
+	
+}
+/*
+ Is Same Day As
+ Checks to see if the dates are the same calendar day
+ */
++ (BOOL)isSameDayAs:(NSDate *)comparisonDate now:(NSDate *)now
+{
+	//Check by matching the date strings
+	//NSDateFormatter *dateComparisonFormatter = [[NSDateFormatter alloc] init];
+	[DATE_FORMATTER_STRING_FROM_DATE setDateFormat:@"yyyy-MM-dd"];
+	
+	//    NSString *day1 = [DATE_FORMATTER_STRING_FROM_DATE stringFromDate:comparisonDate];
+	//    NSString *dayN = [DATE_FORMATTER_STRING_FROM_DATE stringFromDate:now];
+	
+	//Return true if they are the same
+	return [[DATE_FORMATTER_STRING_FROM_DATE stringFromDate:comparisonDate] isEqualToString:[DATE_FORMATTER_STRING_FROM_DATE stringFromDate:now ]];
+}
+/*
+ If the current date is yesterday relative to now
+ Pasing in now to be more accurate (time shift during execution) in the calculations
+ */
++ (BOOL)isYesterday:(NSDate *)comparisonDate now:(NSDate *)now
+{
+	NSInteger delta = [DateUtil noOfDaysBetween:now toDate:comparisonDate];
+	if( delta == 1)
+		return YES;
+	else
+		return NO;
+	
+	//return [self isSameDayAs:[self dateBySubtractingDays:1 now:now] now:now];
+}
+/*
+ Is Last Week
+ We want to know if the current date object is the first occurance of
+ that day of the week (ie like the first friday before today
+ - where we would colloquially say "last Friday")
+ ( within 6 of the last days)
+ 
+ */
++ (BOOL)isLastWeek:(NSTimeInterval)secondsSince
+{
+	return secondsSince < WEEK;
+}
+
+
+/*
+ Is Last Month
+ Previous 31 days?
+ */
++ (BOOL)isLastMonth:(NSTimeInterval)secondsSince
+{
+	return secondsSince < MONTH;
+}
+
+
+/*
+ Is Last Year
+ */
+
++ (BOOL)isLastYear:(NSTimeInterval)secondsSince
+{
+	return secondsSince < YEAR;
+}
+
+//From https://github.com/erica/NSDate-Extensions/blob/master/NSDate-Utilities.m
++ (NSDate *) dateBySubtractingDays: (NSInteger) numDays now:(NSDate *)now
+{
+	NSTimeInterval aTimeInterval = [now timeIntervalSinceReferenceDate] + DAY * -numDays;
+	NSDate *newDate = [NSDate dateWithTimeIntervalSinceReferenceDate:aTimeInterval];
+	return newDate;
+}
+
+// Yesterday = "Yesterday at 1:28 PM"
++ (NSString *)formatAsYesterday:(NSDate *)date
+{
+	//Create date formatter
+	// NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+	
+	//Format
+	[DATE_FORMATTER_STRING_FROM_DATE setDateFormat:@"h:mm a"];
+	return [NSString stringWithFormat:@"Yesterday at %@", [DATE_FORMATTER_STRING_FROM_DATE stringFromDate:date]];
+}
+
+// < 1 hour = "x minutes ago"
++ (NSString *)formatMinutesAgo:(NSTimeInterval)secondsSince
+{
+	//Convert to minutes
+	int minutesSince = (int)secondsSince / MINUTE;
+	
+	//Handle Plural
+	if(minutesSince == 1)
+		return @"1 minute ago";
+	else
+		return [NSString stringWithFormat:@"%d minutes ago", minutesSince];
+}
+
+
+// Today = "x hours ago"
++ (NSString *)formatAsToday:(NSTimeInterval)secondsSince
+{
+	//Convert to hours
+	int hoursSince = (int)secondsSince / HOUR;
+	
+	//Handle Plural
+	if(hoursSince == 1)
+		return @"1 hour ago";
+	else
+		return [NSString stringWithFormat:@"%d hours ago", hoursSince];
+}
+
+
+// < Last 7 days = "Friday at 1:48 AM"
++ (NSString *)formatAsLastWeek:(NSDate *)date
+{
+	//Create date formatter
+	//NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+	
+	//Format
+	[DATE_FORMATTER_STRING_FROM_DATE setDateFormat:@"EEEE 'at' h:mm a"];
+	return [DATE_FORMATTER_STRING_FROM_DATE stringFromDate:date];
+}
+
+
+// < Last 30 days = "March 30 at 1:14 PM"
++ (NSString *)formatAsLastMonth:(NSDate *)date
+{
+	//Create date formatter
+	//NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+	
+	//Format
+	[DATE_FORMATTER_STRING_FROM_DATE setDateFormat:@"MMMM d 'at' h:mm a"];
+	return [DATE_FORMATTER_STRING_FROM_DATE stringFromDate:date];
+}
+
+
+// < 1 year = "September 15"
++ (NSString *)formatAsLastYear:(NSDate *)date
+{
+	//Create date formatter
+	//NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+	
+	//Format
+	[DATE_FORMATTER_STRING_FROM_DATE setDateFormat:@"MMMM d"];
+	return [DATE_FORMATTER_STRING_FROM_DATE stringFromDate:date];
+}
+
+
+// Anything else = "September 9, 2011"
++ (NSString *)formatAsOther:(NSDate *)date
+{
+	//Create date formatter
+	//NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+	
+	//Format
+	[DATE_FORMATTER_STRING_FROM_DATE setDateFormat:@"LLLL d, yyyy"];
+	return [DATE_FORMATTER_STRING_FROM_DATE stringFromDate:date];
 }
 
 //
@@ -421,7 +645,7 @@ static NSDate* LASTDAY_CYEAR = nil;
 {
 	return TIME_ZONE_GMT;
 }
-	
+
 //
 // Converts the given date in the given timezone to GMT/UTC.
 //
@@ -452,10 +676,10 @@ static NSDate* LASTDAY_CYEAR = nil;
 		timeInterval += [toTimeZone secondsFromGMT];
 		
 		// Now convert the date.
-//		if ([date respondsToSelector:@selector(dateByAddingTimeInterval:)])
-//		{
-//			return [date dateByAddingTimeInterval:timeInterval];
-//		}
+		//		if ([date respondsToSelector:@selector(dateByAddingTimeInterval:)])
+		//		{
+		//			return [date dateByAddingTimeInterval:timeInterval];
+		//		}
 		return [date dateByAddingTimeInterval:timeInterval];
 	}
 	
@@ -503,7 +727,7 @@ static NSDate* LASTDAY_CYEAR = nil;
 			NSDate *d1 = [DateUtil getDateByIgnoringTimeComponant:date1];  // for debugging
 			NSDate *d2 = [DateUtil getDateByIgnoringTimeComponant:date2];
 			return ([d1 compare:d2] == NSOrderedAscending);
-            
+			
 			//return ([[DateUtil getDateByIgnoringTimeComponant:date1] compare:[DateUtil getDateByIgnoringTimeComponant:date2]] == NSOrderedAscending);
 		}
 	}
@@ -518,15 +742,15 @@ static NSDate* LASTDAY_CYEAR = nil;
 + (BOOL) date:(NSDate*)date1 isEarlierOrEqualToDate:(NSDate*)date2 includeTime:(BOOL)includeTime
 {
 	
-    if( [DateUtil date:date1 isEqualToDate:date2 includeTime:includeTime] )
-    {
-        return YES;
-    }
-    else if ([DateUtil date:date1 isEarlierThanDate:date2 includeTime:includeTime])
-    {
-        return YES;
-    }
-
+	if( [DateUtil date:date1 isEqualToDate:date2 includeTime:includeTime] )
+	{
+		return YES;
+	}
+	else if ([DateUtil date:date1 isEarlierThanDate:date2 includeTime:includeTime])
+	{
+		return YES;
+	}
+	
 	
 	return NO;
 }
@@ -548,8 +772,8 @@ static NSDate* LASTDAY_CYEAR = nil;
 			NSDate *d1 = [DateUtil getDateByIgnoringTimeComponant:date1];  // for debugging
 			NSDate *d2 = [DateUtil getDateByIgnoringTimeComponant:date2];
 			return ([d1 compare:d2] == NSOrderedDescending);
-            
-           // return ([[DateUtil getDateByIgnoringTimeComponant:date1] compare:[DateUtil getDateByIgnoringTimeComponant:date2]] == NSOrderedAscending);
+			
+			// return ([[DateUtil getDateByIgnoringTimeComponant:date1] compare:[DateUtil getDateByIgnoringTimeComponant:date2]] == NSOrderedAscending);
 		}
 	}
 	
@@ -563,84 +787,84 @@ static NSDate* LASTDAY_CYEAR = nil;
 + (BOOL) date:(NSDate*)date1 isLaterOrEqualToDate:(NSDate*)date2 includeTime:(BOOL)includeTime
 {
 	
-    if( [DateUtil date:date1 isEqualToDate:date2 includeTime:includeTime] )
-    {
-        return YES;
-    }
-    else if ([DateUtil date:date1 isLaterThanDate:date2 includeTime:includeTime])
-    {
-        return YES;
-    }
-    
+	if( [DateUtil date:date1 isEqualToDate:date2 includeTime:includeTime] )
+	{
+		return YES;
+	}
+	else if ([DateUtil date:date1 isLaterThanDate:date2 includeTime:includeTime])
+	{
+		return YES;
+	}
+	
 	
 	return NO;
 }
 
 + (NSInteger) getDayOfWeekForDate:(NSDate *)date {
-    
-    NSDateComponents *components = [[NSCalendar currentCalendar] components:NSWeekdayCalendarUnit fromDate:date];
-    int dayOfWeek = [components weekday];
-    return dayOfWeek;
+	
+	NSDateComponents *components = [[NSCalendar currentCalendar] components:NSWeekdayCalendarUnit fromDate:date];
+	long dayOfWeek = [components weekday];
+	return dayOfWeek;
 }
 
 + (NSInteger) noOfDaysBetween:(NSDate*)fromDate toDate:(NSDate*)toDate
 {
-    if ([fromDate isEqualToDate:toDate])
-        return 0;
-    
-    NSCalendar * gregorian =[NSCalendar currentCalendar];
+	if ([fromDate isEqualToDate:toDate])
+		return 0;
 	
-    NSDate * dateToRound = [fromDate earlierDate:toDate];
-    int flags = (NSYearCalendarUnit | NSMonthCalendarUnit |  NSDayCalendarUnit);
-    NSDateComponents * dateComponents =
-    [gregorian components:flags fromDate:dateToRound];
-    
-    
-    NSDate * roundedDate = [gregorian dateFromComponents:dateComponents];
-    
-    NSDate * otherDate = (dateToRound == fromDate) ? toDate : fromDate ;
-    
-    NSInteger diff = abs([roundedDate timeIntervalSinceDate:otherDate]);
-    
-    NSInteger daysDifference = floor(diff/(24 * 60 * 60));
-    
-    return daysDifference;
+	NSCalendar * gregorian =[NSCalendar currentCalendar];
+	
+	NSDate * dateToRound = [fromDate earlierDate:toDate];
+	int flags = (NSYearCalendarUnit | NSMonthCalendarUnit |  NSDayCalendarUnit);
+	NSDateComponents * dateComponents =
+	[gregorian components:flags fromDate:dateToRound];
+	
+	
+	NSDate * roundedDate = [gregorian dateFromComponents:dateComponents];
+	
+	NSDate * otherDate = (dateToRound == fromDate) ? toDate : fromDate ;
+	
+	NSInteger diff = abs([roundedDate timeIntervalSinceDate:otherDate]);
+	
+	NSInteger daysDifference = floor(diff/(24 * 60 * 60));
+	
+	return daysDifference;
 }
 
 + (NSArray *) getRangeOfDays:(NSDate*)fromDate toDate:(NSDate*)toDate
 {
-    NSCalendar* gregorianCalendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
-    NSMutableArray *dayArray = [[NSMutableArray alloc] initWithCapacity:1];
-    
-    NSCalendarUnit dateComponentsMask = NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit;
-    NSDateComponents* dateComponents = [gregorianCalendar components: dateComponentsMask fromDate: fromDate];
-    dateComponents.hour = 0;
-    dateComponents.minute = 0;
-    dateComponents.second = 0;
+	NSCalendar* gregorianCalendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
+	NSMutableArray *dayArray = [[NSMutableArray alloc] initWithCapacity:1];
+	
+	NSCalendarUnit dateComponentsMask = NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit;
+	NSDateComponents* dateComponents = [gregorianCalendar components: dateComponentsMask fromDate: fromDate];
+	dateComponents.hour = 0;
+	dateComponents.minute = 0;
+	dateComponents.second = 0;
 	NSDate *day = [[NSCalendar currentCalendar] dateFromComponents: dateComponents];
 	[dayArray addObject:day];
 	
-    NSDateComponents *components = [[NSDateComponents alloc] init];
+	NSDateComponents *components = [[NSDateComponents alloc] init];
 	
 	NSInteger lastDMN = [DateUtil noOfDaysBetween:fromDate toDate:toDate];
-    for (int i = 1; i <= lastDMN; i++)
-    {
+	for (int i = 1; i <= lastDMN; i++)
+	{
 		[components setDay: i];
 		NSDate *Day = [gregorianCalendar dateByAddingComponents: components toDate: fromDate options: 0];
-        [dayArray addObject:Day];
-    }
-    return (NSArray *)dayArray;
+		[dayArray addObject:Day];
+	}
+	return (NSArray *)dayArray;
 }
 
 + (BOOL) isInCurrentMonth:(NSDate*)calDate dateToCheck:(NSDate*)chkDate
 {
-    NSCalendar* gregorianCalendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
-    NSDateComponents *calComp = [gregorianCalendar components: (NSMonthCalendarUnit) fromDate: calDate];
+	NSCalendar* gregorianCalendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
+	NSDateComponents *calComp = [gregorianCalendar components: (NSMonthCalendarUnit) fromDate: calDate];
 	NSInteger calMonth = [calComp month];
-    NSInteger calYear = [calComp year];
-    NSDateComponents *chkComp = [gregorianCalendar components: (NSMonthCalendarUnit) fromDate: chkDate];
+	NSInteger calYear = [calComp year];
+	NSDateComponents *chkComp = [gregorianCalendar components: (NSMonthCalendarUnit) fromDate: chkDate];
 	NSInteger chkMonth = [chkComp month];
-    NSInteger chkYear = [chkComp year];
+	NSInteger chkYear = [chkComp year];
 	
 	
 	if(calYear == chkYear )

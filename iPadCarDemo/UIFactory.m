@@ -12,6 +12,7 @@
 #import <objc/runtime.h>
 #import "NSString+Additions.h"
 #import "UIDevice+Additions.h"
+#import "UIColor+Additions.h"
 
 @interface UIFactory()
 
@@ -33,7 +34,7 @@
 @synthesize loadingBackgroundImage;
 @synthesize appSuffix,iPad;
 
-@synthesize linkColorNormal, linkColorHighlight, greyTextColor, lightGreyTextColor;
+@synthesize linkColorNormal, defaultColorHighlight, greyTextColor, lightGreyTextColor;
 
 static UIFactory* UI_FACTORY_INSTANCE = nil;
 
@@ -53,34 +54,39 @@ static CGFloat yiPadScale = 2.48;
 {
 	if (self = [super init])
 	{
-        if( ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad))
-        {
-            self.appSuffix = @"_iPad";
-            self.iPad = YES;
-        }
-        else
-        {
-            self.appSuffix = nil;
-            self.iPad = NO;
-        }
+		if( ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad))
+		{
+			self.appSuffix = @"_iPad";
+			self.iPad = YES;
+		}
+		else
+		{
+			self.appSuffix = nil;
+			self.iPad = NO;
+		}
 		
 		self.appPrefix = @"CD";//[[NSBundle mainBundle] objectForInfoDictionaryKey: @"APP_PREFIX"];
 		self.appProduct = @"CD";//[[NSBundle mainBundle] objectForInfoDictionaryKey: @"APP_PRODUCT"];
-//        self.abstractObjects = [NSMutableArray arrayWithContentsOfFile:[[NSBundle mainBundle]pathForResource:@"AbstractObjects" ofType:@"plist"]];
-//        self.commonDict = [NSDictionary dictionaryWithContentsOfFile:[[NSBundle mainBundle]pathForResource:@"Common" ofType:@"plist"]];
-        self.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"bkg_light"]];
+		//        self.abstractObjects = [NSMutableArray arrayWithContentsOfFile:[[NSBundle mainBundle]pathForResource:@"AbstractObjects" ofType:@"plist"]];
+		//        self.commonDict = [NSDictionary dictionaryWithContentsOfFile:[[NSBundle mainBundle]pathForResource:@"Common" ofType:@"plist"]];
+		self.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"bkg_light"]];
 		
 		self.dividerImage = [UIImage imageNamed:@"divider_horizontal.png"];
 		self.linkColorNormal    = [UIColor colorWithRed:(39.0 / 255.0) green:(86.0 / 255.0) blue:(179.0 / 255.0) alpha:1.0f];
-		self.linkColorHighlight = [UIColor colorWithRed:0.30f green:0.70f blue:1.0f alpha:1.0f];
 		self.greyTextColor	    = [UIColor colorWithRed:0.40f green:0.40f blue:0.40f alpha:1.0f];
 		self.lightGreyTextColor = [UIColor colorWithRed:0.60f green:0.60f blue:0.60f alpha:1.0f];
 		
 		self.titleLabelPrototypeLarge = [self labelWithColor:[UIColor blackColor] selectedColor:[UIColor whiteColor] fontSize:21.0 bold:NO];
 		self.titleLabelPrototypeSmall = [self labelWithColor:[UIColor blackColor] selectedColor:[UIColor whiteColor] fontSize:18.0 bold:NO];
-        [self createColorDictionary];
-        [self createFontDictionary];
-        [self createFontColorDictionary];
+		[self createColorDictionary];
+		[self createFontDictionary];
+		[self createFontColorDictionary];
+		
+		
+		NSString *plistFile = [[NSBundle mainBundle] pathForResource:@"Mozart-Config" ofType:@"plist"];
+		NSDictionary *localConfig = [NSDictionary dictionaryWithContentsOfFile:plistFile];
+		self.defaultColorHighlight = [UIColor colorWithHexString:[localConfig objectForKey:@"defaultHighliteColor"]];
+		
 	}
 	
 	return self;
@@ -96,73 +102,78 @@ static CGFloat yiPadScale = 2.48;
 
 + (NSDictionary *) dictionaryFromPlistWithBaseName: (NSString *) aBaseName
 {
-    NSString *fullName = [NSString stringWithFormat: @"%@.plist", aBaseName];
-    NSString *errorDesc = nil;
-    NSPropertyListFormat format;
-    NSString *plistPath;
-    
-    NSString *bundlePath = [[NSBundle mainBundle] bundlePath];
-    
-    plistPath = [bundlePath stringByAppendingPathComponent: fullName];
-    
-    if (![[NSFileManager defaultManager] fileExistsAtPath: plistPath])
-    {
-        plistPath = [[NSBundle mainBundle] pathForResource: aBaseName ofType: @"plist"];
-    }
-    
-    NSData *plistXML = [[NSFileManager defaultManager] contentsAtPath: plistPath];
-    NSDictionary *propertiesDictionary = (NSDictionary *)[NSPropertyListSerialization propertyListFromData: plistXML
-                                                                                          mutabilityOption: NSPropertyListMutableContainersAndLeaves
-                                                                                                    format: &format
-                                                                                          errorDescription: &errorDesc];
-    
-    
-    return propertiesDictionary;
+	NSString *fullName = [NSString stringWithFormat: @"%@.plist", aBaseName];
+	NSString *errorDesc = nil;
+	NSPropertyListFormat format;
+	NSString *plistPath;
+	
+	NSString *bundlePath = [[NSBundle mainBundle] bundlePath];
+	
+	plistPath = [bundlePath stringByAppendingPathComponent: fullName];
+	
+	if (![[NSFileManager defaultManager] fileExistsAtPath: plistPath])
+	{
+		plistPath = [[NSBundle mainBundle] pathForResource: aBaseName ofType: @"plist"];
+	}
+	
+	NSData *plistXML = [[NSFileManager defaultManager] contentsAtPath: plistPath];
+	NSDictionary *propertiesDictionary = (NSDictionary *)[NSPropertyListSerialization propertyListFromData: plistXML
+																						  mutabilityOption: NSPropertyListMutableContainersAndLeaves
+																									format: &format
+																						  errorDescription: &errorDesc];
+	
+	
+	return propertiesDictionary;
 }
 - (UIColor *)grayColor:(CGFloat)gray alpha:(CGFloat)alpha
 {
-    return ([UIColor colorWithRed:(gray/255.0) green:(gray/255.0) blue:(gray/255.0) alpha:alpha]);
+	return ([UIColor colorWithRed:(gray/255.0) green:(gray/255.0) blue:(gray/255.0) alpha:alpha]);
 }
 
 - (UIColor *) colorAtKey: (NSString *) keyName
 {
-    return [_colorDictionary objectForKey: keyName];
+	return [_colorDictionary objectForKey: keyName];
 }
 
 - (UIFont *) fontAtKey: (NSString *) keyName
 {
-    return [_fontDictionary objectForKey: keyName];
+	return [_fontDictionary objectForKey: keyName];
 }
 
 - (UIColor *) fontColorAtKey: (NSString *) keyName
 {
-    return [_fontColorDictionary objectForKey: keyName];
+	return [_fontColorAlignDictionary objectForKey: keyName];
+}
+
+- (UIColor *) fontAlignmentAtKey: (NSString *) keyName
+{
+	return [_fontColorAlignDictionary objectForKey: keyName];
 }
 
 - (UIImage *) imageAtKey: (NSString *) keyName
 {
-    return [_imageDictionary objectForKey: keyName];
+	return [_imageDictionary objectForKey: keyName];
 }
 
 // This isn't actually required to be a string, but we are *probably* only
 // going to have strings in the plist dictionary.
 - (NSString *) stringAtKey: (NSString *) keyName
 {
-    if (_propertiesDictionary) {
-        if ([_propertiesDictionary isKindOfClass: [NSDictionary class ]])
-        {
-            return [_propertiesDictionary objectForKey: keyName];
-        }
-        else
-        {
-            NSLog(@"[%@] *** ERROR *** -- properties dictionary is not a dictionary, it is a %@", self.class, [_propertiesDictionary class ]);
-            return nil;
-        }
-    }
-    else
-    {
-        return nil;
-    }
+	if (_propertiesDictionary) {
+		if ([_propertiesDictionary isKindOfClass: [NSDictionary class ]])
+		{
+			return [_propertiesDictionary objectForKey: keyName];
+		}
+		else
+		{
+			NSLog(@"[%@] *** ERROR *** -- properties dictionary is not a dictionary, it is a %@", self.class, [_propertiesDictionary class ]);
+			return nil;
+		}
+	}
+	else
+	{
+		return nil;
+	}
 }
 
 /*
@@ -173,36 +184,36 @@ static CGFloat yiPadScale = 2.48;
  */
 - (UIColor *) colorFromHexString: (NSString *) hexString
 {
-    UIColor *color = [UIColor blackColor];
-    
-    if (!hexString)
-    {
-        return color;
-    }
-    
-    NSScanner *scanner = [NSScanner scannerWithString: hexString];
-    [scanner setCharactersToBeSkipped: [NSCharacterSet characterSetWithCharactersInString: @"#"]];
-    
-    unsigned int value = 0;
-    if ([scanner scanHexInt: &value])
-    {
-        int red = (value >> 16) & 0xFF;
-        int green = (value >> 8) & 0xFF;
-        int blue = value & 0xFF;
-        color = [UIColor colorWithRed: red / 255.0 green: green / 255.0 blue: blue / 255.0 alpha: 1.0];
-    }
-    
-    return color;
+	UIColor *color = [UIColor blackColor];
+	
+	if (!hexString)
+	{
+		return color;
+	}
+	
+	NSScanner *scanner = [NSScanner scannerWithString: hexString];
+	[scanner setCharactersToBeSkipped: [NSCharacterSet characterSetWithCharactersInString: @"#"]];
+	
+	unsigned int value = 0;
+	if ([scanner scanHexInt: &value])
+	{
+		int red = (value >> 16) & 0xFF;
+		int green = (value >> 8) & 0xFF;
+		int blue = value & 0xFF;
+		color = [UIColor colorWithRed: red / 255.0 green: green / 255.0 blue: blue / 255.0 alpha: 1.0];
+	}
+	
+	return color;
 }
 
 - (void) setBundle: (NSString *) aBundle
 {
-    _bundleName = aBundle;
+	_bundleName = aBundle;
 }
 
 - (NSString *) setBundleName: (NSString *) keyName
 {
-    return @"Bundle Name";
+	return @"Bundle Name";
 }
 
 #pragma mark -
@@ -210,171 +221,271 @@ static CGFloat yiPadScale = 2.48;
 
 - (void) createColorDictionary
 {
-    if (_colorDictionary == nil)
-    {
-        _colorDictionary = [NSMutableDictionary dictionary];
-    }
-    [_colorDictionary setObject: [UIColor blackColor] forKey: @"Black"];
-    [_colorDictionary setObject: [UIColor whiteColor] forKey: @"White"];
-    [_colorDictionary setObject: [UIColor blueColor]  forKey: @"Blue"];
-    
-    [_colorDictionary setObject: [UIColor colorWithRed: 50.0f / 255.0f green: 50.0f / 255.0f blue: 50.0f / 255.0f alpha: 1] forKey: @"Dark Gray"];
-    [_colorDictionary setObject: [UIColor colorWithRed: 95.0f / 255.0f green: 95.0f / 255.0f blue: 95.0f / 255.0f alpha: 1] forKey: @"Gray"];
-    [_colorDictionary setObject: [UIColor colorWithRed: 150.0f / 255.0f green: 150.0f / 255.0f blue: 150.0f / 255.0f alpha: 1] forKey: @"Light Gray"];
-    [_colorDictionary setObject: [UIColor colorWithRed: 224.0f / 255.0f green: 224.0f / 255.0f blue: 224.0f / 255.0f alpha: 1] forKey: @"Gray Cell"];
-    [_colorDictionary setObject: [UIColor colorWithRed: 236.0f / 255.0f green: (236.0f / 255.0f) blue: (236.0f / 255.0f) alpha: 1] forKey: @"Bone"];
-    [_colorDictionary setObject: [UIColor colorWithRed: 38.0f / 255.0f green: (38.0f / 255.0f) blue: (38.0f / 255.0f) alpha: 1] forKey: @"Cell Background"];
-    [_colorDictionary setObject: [UIColor colorWithRed: 27.0f / 255.0f green: (27.0f / 255.0f) blue: (27.0f / 255.0f) alpha: 1] forKey: @"defaultDayBkgColor"];
+	if (_colorDictionary == nil)
+	{
+		_colorDictionary = [NSMutableDictionary dictionary];
+	}
+	[_colorDictionary setObject: [UIColor blackColor] forKey: @"Black"];
+	[_colorDictionary setObject: [UIColor whiteColor] forKey: @"White"];
+	[_colorDictionary setObject: [UIColor blueColor]  forKey: @"Blue"];
+	
+	[_colorDictionary setObject: [UIColor colorWithRed: 50.0f / 255.0f green: 50.0f / 255.0f blue: 50.0f / 255.0f alpha: 1] forKey: @"Dark Gray"];
+	[_colorDictionary setObject: [UIColor colorWithRed: 95.0f / 255.0f green: 95.0f / 255.0f blue: 95.0f / 255.0f alpha: 1] forKey: @"Gray"];
+	[_colorDictionary setObject: [UIColor colorWithRed: 150.0f / 255.0f green: 150.0f / 255.0f blue: 150.0f / 255.0f alpha: 1] forKey: @"Light Gray"];
+	[_colorDictionary setObject: [UIColor colorWithRed: 224.0f / 255.0f green: 224.0f / 255.0f blue: 224.0f / 255.0f alpha: 1] forKey: @"Gray Cell"];
+	[_colorDictionary setObject: [UIColor colorWithRed: 236.0f / 255.0f green: (236.0f / 255.0f) blue: (236.0f / 255.0f) alpha: 1] forKey: @"Bone"];
+	[_colorDictionary setObject: [UIColor colorWithRed: 38.0f / 255.0f green: (38.0f / 255.0f) blue: (38.0f / 255.0f) alpha: 1] forKey: @"Cell Background"];
+	[_colorDictionary setObject: [UIColor colorWithRed: 27.0f / 255.0f green: (27.0f / 255.0f) blue: (27.0f / 255.0f) alpha: 1] forKey: @"defaultDayBkgColor"];
 }
 
 - (void) createFontDictionary
 {
-    if (_fontDictionary == nil)
-    {
-        _fontDictionary = [NSMutableDictionary dictionary];
-    }
-    CGFloat y = (self.iPad) ? yiPadScale : 1.0;
-    [_fontDictionary setObject: [UIFont fontWithName: @"Helvetica-Bold" size: y*10] forKey: @"HB10"];
-    [_fontDictionary setObject: [UIFont fontWithName: @"Helvetica-Bold" size: y*11] forKey: @"HB11"];
-    [_fontDictionary setObject: [UIFont fontWithName: @"Helvetica-Bold" size: y*12] forKey: @"HB12"];
-    [_fontDictionary setObject: [UIFont fontWithName: @"Helvetica-Bold" size: y*13] forKey: @"HB13"];
-    [_fontDictionary setObject: [UIFont fontWithName: @"Helvetica-Bold" size: y*14] forKey: @"HB14"];
-    [_fontDictionary setObject: [UIFont fontWithName: @"Helvetica-Bold" size: y*15] forKey: @"HB15"];
-    [_fontDictionary setObject: [UIFont fontWithName: @"Helvetica-Bold" size: y*16] forKey: @"HB16"];
-    [_fontDictionary setObject: [UIFont fontWithName: @"Helvetica-Bold" size: y*18] forKey: @"HB18"];
-    [_fontDictionary setObject: [UIFont fontWithName: @"Helvetica-Bold" size: y*22] forKey: @"HB22"];
-    [_fontDictionary setObject: [UIFont fontWithName: @"Helvetica-Bold" size: y*27] forKey: @"HB27"];
-    [_fontDictionary setObject: [UIFont fontWithName: @"Helvetica-Bold" size: y*28] forKey: @"HB28"];
-    [_fontDictionary setObject: [UIFont fontWithName: @"Helvetica-Bold" size: y*34] forKey: @"HB34"];
+	if (_fontDictionary == nil)
+	{
+		_fontDictionary = [NSMutableDictionary dictionary];
+	}
 	
-    [_fontDictionary setObject: [UIFont fontWithName: @"Helvetica" size: y*10] forKey: @"H10"];
-    [_fontDictionary setObject: [UIFont fontWithName: @"Helvetica" size: y*11] forKey: @"H11"];
-    [_fontDictionary setObject: [UIFont fontWithName: @"Helvetica" size: y*13] forKey: @"H13"];
-	[_fontDictionary setObject: [UIFont fontWithName: @"Helvetica" size: y*14] forKey: @"H14"];
-    [_fontDictionary setObject: [UIFont fontWithName: @"Helvetica" size: y*15] forKey: @"H15"];
-    [_fontDictionary setObject: [UIFont fontWithName: @"Helvetica" size: y*16] forKey: @"H16"];
-    [_fontDictionary setObject: [UIFont fontWithName: @"Helvetica" size: y*18] forKey: @"H18"];
-    [_fontDictionary setObject: [UIFont fontWithName: @"Helvetica" size: y*20] forKey: @"H20"];
-    
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Black" size: 10] forKey: @"AB10"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Black" size: 11] forKey: @"AB11"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Black" size: 12] forKey: @"AB12"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Black" size: 13] forKey: @"AB13"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Black" size: 14] forKey: @"AB14"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Black" size: 16] forKey: @"AB16"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Black" size: 18] forKey: @"AB18"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Black" size: 20] forKey: @"AB20"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Black" size: 22] forKey: @"AB22"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Black" size: 24] forKey: @"AB24"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Black" size: 30] forKey: @"AB30"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Black" size: 32] forKey: @"AB32"];
+	
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Medium" size: 10] forKey: @"AM10"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Medium" size: 11] forKey: @"AM11"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Medium" size: 12] forKey: @"AM12"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Medium" size: 13] forKey: @"AM13"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Medium" size: 14] forKey: @"AM14"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Medium" size: 16] forKey: @"AM16"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Medium" size: 18] forKey: @"AM18"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Medium" size: 20] forKey: @"AM20"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Medium" size: 22] forKey: @"AM22"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Medium" size: 24] forKey: @"AM24"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Medium" size: 30] forKey: @"AM30"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Medium" size: 32] forKey: @"AM32"];
+	
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Roman" size: 8]  forKey: @"AR08"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Roman" size: 10] forKey: @"AR10"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Roman" size: 11] forKey: @"AR11"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Roman" size: 12] forKey: @"AR12"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Roman" size: 13] forKey: @"AR13"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Roman" size: 14] forKey: @"AR14"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Roman" size: 16] forKey: @"AR16"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Roman" size: 18] forKey: @"AR18"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Roman" size: 20] forKey: @"AR20"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Roman" size: 22] forKey: @"AR22"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Roman" size: 24] forKey: @"AR24"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Roman" size: 30] forKey: @"AR30"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Roman" size: 32] forKey: @"AR32"];
+	
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Light" size: 8]  forKey: @"AL08"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Light" size: 9]  forKey: @"AL09"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Light" size: 10] forKey: @"AL10"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Light" size: 11] forKey: @"AL11"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Light" size: 12] forKey: @"AL12"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Light" size: 13] forKey: @"AL13"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Light" size: 14] forKey: @"AL14"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Light" size: 16] forKey: @"AL16"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Light" size: 18] forKey: @"AL18"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Light" size: 20] forKey: @"AL20"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Light" size: 22] forKey: @"AL22"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Light" size: 24] forKey: @"AL24"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Light" size: 30] forKey: @"AL30"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Light" size: 32] forKey: @"AL32"];
+	
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Heavy" size: 8]  forKey: @"AH08"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Heavy" size: 10] forKey: @"AH10"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Heavy" size: 11] forKey: @"AH11"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Heavy" size: 12] forKey: @"AH12"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Heavy" size: 13] forKey: @"AH13"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Heavy" size: 14] forKey: @"AH14"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Heavy" size: 16] forKey: @"AH16"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Heavy" size: 18] forKey: @"AH18"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Heavy" size: 20] forKey: @"AH20"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Heavy" size: 22] forKey: @"AH22"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Heavy" size: 24] forKey: @"AH24"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Heavy" size: 30] forKey: @"AH30"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"Avenir-Heavy" size: 32] forKey: @"AH32"];
+	
+	[_fontDictionary setObject: [UIFont fontWithName: @"AvenirNext-Regular" size: 10] forKey: @"AN10"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"AvenirNext-Regular" size: 11] forKey: @"AN11"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"AvenirNext-Regular" size: 12] forKey: @"AN12"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"AvenirNext-Regular" size: 13] forKey: @"AN13"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"AvenirNext-Regular" size: 14] forKey: @"AN14"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"AvenirNext-Regular" size: 16] forKey: @"AN16"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"AvenirNext-Regular" size: 18] forKey: @"AN18"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"AvenirNext-Regular" size: 20] forKey: @"AN20"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"AvenirNext-Regular" size: 22] forKey: @"AN22"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"AvenirNext-Regular" size: 24] forKey: @"AN24"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"AvenirNext-Regular" size: 30] forKey: @"AN30"];
+	[_fontDictionary setObject: [UIFont fontWithName: @"AvenirNext-Regular" size: 32] forKey: @"AN32"];
 }
 
 - (void) createFontColorDictionary
 {
-    if (_fontColorDictionary == nil)
-    {
-        _fontColorDictionary = [NSMutableDictionary dictionary];
-    }
-    
-    //*************************************************************************************
-    // NOTE: Fonts here match up with the GDS, hence the naming convention used
-    //*************************************************************************************
-    
-    UIColor *percent60Black = [UIColor colorWithRed: 0.6 green: 0.6 blue: 0.6 alpha: 1.0];
-    UIColor *percent75Black = [UIColor colorWithRed: 0.75 green: 0.75 blue: 0.75 alpha: 1.0];
-    UIColor *primary = [UIColor colorWithRed: 0.4 green: 0.625 blue: 0.766 alpha: 1.0];
-    UIColor *white = [UIColor whiteColor];
-    UIColor *black = [UIColor blackColor];
-    
-    
-    [_fontColorDictionary setObject: percent60Black forKey: @"HB10"];
-    [_fontColorDictionary setObject: percent75Black forKey: @"HB11"];
-    [_fontColorDictionary setObject: black forKey: @"HB12"];
-    
-    
-    [_fontColorDictionary setObject: percent60Black forKey: @"HB13"];
-    [_fontColorDictionary setObject: percent60Black forKey: @"HB14"];
-    
-    
-    [_fontColorDictionary setObject: black forKey: @"HB15"];
-    [_fontColorDictionary setObject: percent75Black forKey: @"HB16"];
-    [_fontColorDictionary setObject: black forKey: @"HB18"];
-    
-    
-    [_fontColorDictionary setObject: white forKey: @"HB22"];
-    [_fontColorDictionary setObject: primary forKey: @"HB27"];
-    [_fontColorDictionary setObject: black forKey: @"HB28"];
-    [_fontColorDictionary setObject: white forKey: @"HB34"];
-    
-    
-    [_fontColorDictionary setObject: black forKey: @"H10"];
-    [_fontColorDictionary setObject: percent75Black forKey: @"H11"];
-    [_fontColorDictionary setObject: primary forKey: @"H13"];
-    
-    
-    [_fontColorDictionary setObject: white forKey: @"H14"];
-    [_fontColorDictionary setObject: percent75Black forKey: @"H15"];
-    
-    
-    [_fontColorDictionary setObject: black forKey: @"H16"];
-    
-    
-    [_fontColorDictionary setObject: percent60Black forKey: @"H18"];
-    [_fontColorDictionary setObject: black forKey: @"H20"];
+	if (_fontColorAlignDictionary == nil)
+	{
+		_fontColorAlignDictionary = [NSMutableDictionary dictionary];
+	}
+	
+	//*************************************************************************************
+	// NOTE: Fonts here match up with the GDS, hence the naming convention used
+	//*************************************************************************************
+	
+	UIColor *grey44 = [UIColor colorWithHexString:@"707070"];
+	UIColor *grey55 = [UIColor colorWithHexString:@"555555"];
+	UIColor *greyA1 = [UIColor colorWithHexString:@"A1A1A1"];
+	UIColor *greyAA = [UIColor colorWithHexString:@"AAAAAA"];
+	UIColor *white  = [UIColor whiteColor];
+	UIColor *black  = [UIColor blackColor];
+	UIColor *grey95 = [UIColor colorWithHexString:@"959595"];
+	UIColor *grey89 = [UIColor colorWithHexString:@"898989"];
+	UIColor *dBlue  = [UIColor colorWithHexString:@"34495e"];
+	UIColor *grey36 = [UIColor colorWithHexString:@"363636"];
+	UIColor *greyac = [UIColor colorWithHexString:@"acacac"];
+	UIColor *grey7d = [UIColor colorWithHexString:@"7d7d7d"];
+	UIColor *greyC2 = [UIColor colorWithHexString:@"c2c2c2"];
+	
+	[_fontColorAlignDictionary setObject: white  forKey: @"FFL"];
+	[_fontColorAlignDictionary setObject: white  forKey: @"FFC"];
+	[_fontColorAlignDictionary setObject: white  forKey: @"FFR"];
+	
+	[_fontColorAlignDictionary setObject: greyA1  forKey: @"A1L"];
+	[_fontColorAlignDictionary setObject: greyA1  forKey: @"A1C"];
+	[_fontColorAlignDictionary setObject: greyA1  forKey: @"A1R"];
+	
+	[_fontColorAlignDictionary setObject: greyAA  forKey: @"AAL"];
+	[_fontColorAlignDictionary setObject: greyAA  forKey: @"AAC"];
+	[_fontColorAlignDictionary setObject: greyAA  forKey: @"AAR"];
+	
+	[_fontColorAlignDictionary setObject: grey44  forKey: @"44L"];
+	[_fontColorAlignDictionary setObject: grey44  forKey: @"44C"];
+	[_fontColorAlignDictionary setObject: grey44  forKey: @"44R"];
+	
+	[_fontColorAlignDictionary setObject: grey55  forKey: @"55L"];
+	[_fontColorAlignDictionary setObject: grey55  forKey: @"55C"];
+	[_fontColorAlignDictionary setObject: grey55  forKey: @"55R"];
+	
+	[_fontColorAlignDictionary setObject: grey95  forKey: @"95L"];
+	[_fontColorAlignDictionary setObject: grey95  forKey: @"95C"];
+	[_fontColorAlignDictionary setObject: grey95  forKey: @"95R"];
+	
+	[_fontColorAlignDictionary setObject: grey36  forKey: @"36L"];
+	[_fontColorAlignDictionary setObject: grey36  forKey: @"36C"];
+	[_fontColorAlignDictionary setObject: grey36  forKey: @"36R"];
+	
+	[_fontColorAlignDictionary setObject: grey89  forKey: @"89L"];
+	[_fontColorAlignDictionary setObject: grey89  forKey: @"89C"];
+	[_fontColorAlignDictionary setObject: grey89  forKey: @"89R"];
+	
+	[_fontColorAlignDictionary setObject: black  forKey: @"00L"];
+	[_fontColorAlignDictionary setObject: black  forKey: @"00C"];
+	[_fontColorAlignDictionary setObject: black  forKey: @"00R"];
+	
+	[_fontColorAlignDictionary setObject: dBlue  forKey: @"DBL"];
+	[_fontColorAlignDictionary setObject: dBlue  forKey: @"DBC"];
+	[_fontColorAlignDictionary setObject: dBlue  forKey: @"DBR"];
+	
+	[_fontColorAlignDictionary setObject: greyac  forKey: @"ACL"];
+	[_fontColorAlignDictionary setObject: greyac  forKey: @"ACC"];
+	[_fontColorAlignDictionary setObject: greyac  forKey: @"ACR"];
+	
+	[_fontColorAlignDictionary setObject: grey7d  forKey: @"7DL"];
+	[_fontColorAlignDictionary setObject: grey7d  forKey: @"7DC"];
+	[_fontColorAlignDictionary setObject: grey7d  forKey: @"7DR"];
+	
+	[_fontColorAlignDictionary setObject: greyC2  forKey: @"C2L"];
+	[_fontColorAlignDictionary setObject: greyC2  forKey: @"C2C"];
+	[_fontColorAlignDictionary setObject: greyC2  forKey: @"C2R"];
 }
 
 #pragma mark -
 #pragma mark background Color Methods
+- (void) setupStatusBar:(UIView *)baseView
+{
+	UIView *addStatusBar = [baseView viewWithTag:-199];
+	if( addStatusBar )
+	{
+		addStatusBar.hidden = NO;
+		addStatusBar.frame = CGRectMake(0, 0, 320, 20);                 /// TODO  make for idiom...
+	}
+	else
+	{
+		addStatusBar = [[UIView alloc] init];
+		addStatusBar.tag = -199;
+		addStatusBar.frame = CGRectMake(0, 0, 320, 20);                 /// TODO  make for idiom...
+		addStatusBar.backgroundColor = [UIColor colorWithHexString:@"34495e"];
+		[baseView addSubview:addStatusBar];
+	}
+}
 
 - (UIImage *)viewBackground
 {
-    UIImage *image = [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone ? [UIImage imageNamed:@"background-568h"] : [UIImage imageNamed:@"background"];
+	UIImage *image = [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone ? [UIImage imageNamed:@"background-568h"] : [UIImage imageNamed:@"background"];
 	
-    image = [image resizableImageWithCapInsets:UIEdgeInsetsZero];
-    return image;
+	image = [image resizableImageWithCapInsets:UIEdgeInsetsZero];
+	return image;
 }
 
 
 - (UIImage *)viewBackgroundForOrientation:(UIInterfaceOrientation)orientation
 {
-    UIImage *image;
-    if (UIInterfaceOrientationIsPortrait(orientation))
+	UIImage *image;
+	if (UIInterfaceOrientationIsPortrait(orientation))
 	{
-        image = [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone ? [UIImage imageNamed:@"background-568h"] : [UIImage imageNamed:@"background"];
-    } else
+		image = [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone ? [UIImage imageNamed:@"background-568h"] : [UIImage imageNamed:@"background"];
+	} else
 	{
-        image = [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone ? [UIImage imageNamed:@"backgroundLandscape-568h"] : [UIImage imageNamed:@"backgroundLandscape"];
-    }
-    
-    image = [image resizableImageWithCapInsets:UIEdgeInsetsZero];
-    return image;
+		image = [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone ? [UIImage imageNamed:@"backgroundLandscape-568h"] : [UIImage imageNamed:@"backgroundLandscape"];
+	}
+	
+	image = [image resizableImageWithCapInsets:UIEdgeInsetsZero];
+	return image;
 }
 
 - (UIImage *)navigationBackgroundForBarMetrics:(UIBarMetrics)metrics
 {
-    NSString *name = @"navigationBackground";
-    if (metrics == UIBarMetricsLandscapePhone) {
-        name = [name stringByAppendingString:@"Landscape"];
-    }
-    UIImage *image = [UIImage imageNamed:name];
-    image = [image resizableImageWithCapInsets:UIEdgeInsetsMake(10.0, 8.0, 10.0, 8.0)];
-    
-    CGFloat height = 64;
-    CGFloat width = [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone ? 320 : (metrics == UIBarMetricsLandscapePhone ? 1024 : 768);
-    UIImage *bottomImage = metrics == UIBarMetricsLandscapePhone ? [self viewBackgroundForOrientation:UIInterfaceOrientationLandscapeLeft] : [self viewBackground];
-    
-    CGSize newSize = CGSizeMake(width, height);
-    UIGraphicsBeginImageContext( newSize );
-    
-    [bottomImage drawInRect:CGRectMake(0, 0, newSize.width, bottomImage.size.height)];
-    
-    [image drawInRect:CGRectMake(0,0,newSize.width,newSize.height) blendMode:kCGBlendModeNormal alpha:1];
-    image = UIGraphicsGetImageFromCurrentImageContext();
-    
-    UIGraphicsEndImageContext();
-    
-    return image;
+	NSString *name = @"navigationBackground";
+	if (metrics == UIBarMetricsLandscapePhone) {
+		name = [name stringByAppendingString:@"Landscape"];
+	}
+	UIImage *image = [UIImage imageNamed:name];
+	image = [image resizableImageWithCapInsets:UIEdgeInsetsMake(10.0, 8.0, 10.0, 8.0)];
+	
+	CGFloat height = 64;
+	CGFloat width = [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone ? 320 : (metrics == UIBarMetricsLandscapePhone ? 1024 : 768);
+	UIImage *bottomImage = metrics == UIBarMetricsLandscapePhone ? [self viewBackgroundForOrientation:UIInterfaceOrientationLandscapeLeft] : [self viewBackground];
+	
+	CGSize newSize = CGSizeMake(width, height);
+	UIGraphicsBeginImageContext( newSize );
+	
+	[bottomImage drawInRect:CGRectMake(0, 0, newSize.width, bottomImage.size.height)];
+	
+	[image drawInRect:CGRectMake(0,0,newSize.width,newSize.height) blendMode:kCGBlendModeNormal alpha:1];
+	image = UIGraphicsGetImageFromCurrentImageContext();
+	
+	UIGraphicsEndImageContext();
+	
+	return image;
 }
 
 - (UIImage *)navigationBackgroundForIPadAndOrientation:(UIInterfaceOrientation)orientation
 {
-    NSString *name = @"navigationBackgroundRight";
-    if (UIInterfaceOrientationIsLandscape(orientation))
+	NSString *name = @"navigationBackgroundRight";
+	if (UIInterfaceOrientationIsLandscape(orientation))
 	{
-        name = [name stringByAppendingString:@"Landscape"];
-    }
-    UIImage *image = [UIImage imageNamed:name];
-    image = [image resizableImageWithCapInsets:UIEdgeInsetsMake(0.0, 8.0, 0.0, 8.0)];
-    return image;
+		name = [name stringByAppendingString:@"Landscape"];
+	}
+	UIImage *image = [UIImage imageNamed:name];
+	image = [image resizableImageWithCapInsets:UIEdgeInsetsMake(0.0, 8.0, 0.0, 8.0)];
+	return image;
 }
 
 #pragma mark -
@@ -382,71 +493,71 @@ static CGFloat yiPadScale = 2.48;
 
 -(NSDictionary *) getTargetDict:(NSString *)viewController
 {
-    NSDictionary *viewItem = [self.commonDict objectForKey:viewController];
-    NSDictionary *target = [viewItem objectForKey:self.appPrefix];
-    return target;
+	NSDictionary *viewItem = [self.commonDict objectForKey:viewController];
+	NSDictionary *target = [viewItem objectForKey:self.appPrefix];
+	return target;
 }
 
 
 -(NSString *) getClassTitle:(NSString *)viewController
 {
-    NSString *newViewController = nil;
-    NSDictionary *targetDict = [self getTargetDict:viewController];
-    
-    newViewController = [targetDict objectForKey:@"sClass"];
-    if( newViewController)
-        return newViewController;
-    else
-        return viewController;
+	NSString *newViewController = nil;
+	NSDictionary *targetDict = [self getTargetDict:viewController];
+	
+	newViewController = [targetDict objectForKey:@"sClass"];
+	if( newViewController)
+		return newViewController;
+	else
+		return viewController;
 }
 
 -(id) loadClazz:(NSString *)viewController
 {
-    NSString *newViewController = [self getClassTitle:viewController];
-    Class clazz = nil;
-    
-    if( newViewController)
-        clazz = [NSClassFromString(newViewController) class];
-    else
-        clazz = [NSClassFromString(viewController) class];
-    
-    return clazz;
+	NSString *newViewController = [self getClassTitle:viewController];
+	Class clazz = nil;
+	
+	if( newViewController)
+		clazz = [NSClassFromString(newViewController) class];
+	else
+		clazz = [NSClassFromString(viewController) class];
+	
+	return clazz;
 }
 
 static const char * getPropertyType(objc_property_t property)
 {
-    const char *attributes = property_getAttributes(property);
-    //printf("attributes=%s\n", attributes);
-    char buffer[1 + strlen(attributes)];
-    strcpy(buffer, attributes);
-    char *state = buffer, *attribute;
-    while ((attribute = strsep(&state, ",")) != NULL)
-    {
-        if (attribute[0] == 'T' && attribute[1] != '@')
-        {
-            // it's a C primitive type:
-            /*
-             if you want a list of what will be returned for these primitives, search online for
-             "objective-c" "Property Attribute Description Examples"
-             apple docs list plenty of examples of what you get for int "i", long "l", unsigned "I", struct, etc.
-             */
+	const char *attributes = property_getAttributes(property);
+	//printf("attributes=%s\n", attributes);
+	char buffer[1 + strlen(attributes)];
+	strcpy(buffer, attributes);
+	char *state = buffer, *attribute;
+	while ((attribute = strsep(&state, ",")) != NULL)
+	{
+		if (attribute[0] == 'T' && attribute[1] != '@')
+		{
+			// it's a C primitive type:
+			/*
+			 if you want a list of what will be returned for these primitives, search online for
+			 "objective-c" "Property Attribute Description Examples"
+			 apple docs list plenty of examples of what you get for int "i", long "l", unsigned "I", struct, etc.
+			 */
 			return ""; // dont want primitives
-            //return (const char *)[[NSData dataWithBytes:(attribute + 1) length:strlen(attribute) - 1] bytes];
-        }
-        else if (attribute[0] == 'T' && attribute[1] == '@' && strlen(attribute) == 2)
-        {
-            // it's an ObjC id type:
-            return "id";
-        }
-        else if (attribute[0] == 'T' && attribute[1] == '@')
-        {
-            // it's another ObjC object type:
-            char *answer = (char *)[[NSData dataWithBytes:(attribute + 3) length:strlen(attribute) - 4] bytes];
+			//return (const char *)[[NSData dataWithBytes:(attribute + 1) length:strlen(attribute) - 1] bytes];
+		}
+		else if (attribute[0] == 'T' && attribute[1] == '@' && strlen(attribute) == 2)
+		{
+			// it's an ObjC id type:
+			return "id";
+		}
+		else if (attribute[0] == 'T' && attribute[1] == '@')
+		{
+			// it's another ObjC object type:
+			char *answer = (char *)[[NSData dataWithBytes:(attribute + 3) length:strlen(attribute) - 4] bytes];
 			answer[(strlen(attribute) - 4)]  = 0;
-            return answer;
-        }
-    }
-    return "";
+			return answer;
+		}
+	}
+	return "";
 }
 
 -(NSString *)inspectPropertyType:(objc_property_t) property
@@ -470,10 +581,10 @@ static const char * getPropertyType(objc_property_t property)
 		else if (attribute[0] == 'T' && attribute[1] == '@')
 		{
 			// it's another ObjC object type:
-//			NSString *type = [[NSString alloc] initWithUTF8String:&attribute[2]];
-//			NSString *type2 = [StringFunctions string:type byReplacingBadCharactersWithString:@"\""];
+			//			NSString *type = [[NSString alloc] initWithUTF8String:&attribute[2]];
+			//			NSString *type2 = [StringFunctions string:type byReplacingBadCharactersWithString:@"\""];
 			NSString *type = [[[NSString alloc] initWithUTF8String:&attribute[2]] stringByReplacingOccurrencesOfString:@"\"" withString:@""];
-
+			
 			return type;
 		}
 	}
@@ -482,8 +593,8 @@ static const char * getPropertyType(objc_property_t property)
 
 -(id) loadProperty: (NSString*)viewController property:(NSString *)key
 {
-    NSDictionary *targetDict = [self getTargetDict:viewController];
-    return (id)([targetDict objectForKey:key]);
+	NSDictionary *targetDict = [self getTargetDict:viewController];
+	return (id)([targetDict objectForKey:key]);
 }
 
 #pragma clang diagnostic push
@@ -493,19 +604,19 @@ static const char * getPropertyType(objc_property_t property)
 
 -(NSDictionary *)fetchPropertyNamesForKeys: (id)aObj jsonDict:(NSDictionary*)jdict excludeTypes:(NSString *)excluded
 {
-
-    NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:2];
-    unsigned int propertyCount = 0;
-    objc_property_t *properties = class_copyPropertyList([aObj class], &propertyCount);
-    NSMutableArray *arrNames = [NSMutableArray array];
-    NSMutableArray *arrTypes = [NSMutableArray array];
-    for (unsigned int i = 0; i < propertyCount; ++i)
-    {
-        objc_property_t property = properties[i];
-        const char * name = property_getName(property);
-        if( name)
-        {
-            //const char *propType = getPropertyType(property);
+	
+	NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:2];
+	unsigned int propertyCount = 0;
+	objc_property_t *properties = class_copyPropertyList([aObj class], &propertyCount);
+	NSMutableArray *arrNames = [NSMutableArray array];
+	NSMutableArray *arrTypes = [NSMutableArray array];
+	for (unsigned int i = 0; i < propertyCount; ++i)
+	{
+		objc_property_t property = properties[i];
+		const char * name = property_getName(property);
+		if( name)
+		{
+			//const char *propType = getPropertyType(property);
 			//NSString *pType = [NSString stringWithUTF8String:propType];
 			
 			NSString *pType = [self inspectPropertyType:property];
@@ -521,14 +632,14 @@ static const char * getPropertyType(objc_property_t property)
 				{
 					id pObj = [aObj valueForKey:pName];
 					NSString *classKey = [pObj debugDescription];
-
+					
 					NSDictionary *pDict = [jdict objectForKey:classKey];
 					[self addValuesToObjfromJsonDict:pObj jsonDict:pDict excludeTypes:excluded];
 				}
 			}
-        }
-    }
-    free(properties);
+		}
+	}
+	free(properties);
 	[dict setObject:arrNames forKey:@"KeyPropNames"];
 	[dict setObject:arrTypes forKey:@"KeyPropTypes"];
 	
@@ -569,48 +680,48 @@ static const char * getPropertyType(objc_property_t property)
 
 -(void) loadDefaultPropertyValues: (id)aObj
 {
-    const char * cName = class_getName([aObj class]);
-    NSString *objName = [NSString stringWithUTF8String:cName];
-    
-    unsigned int propertyCount = 0;
-    objc_property_t *properties = class_copyPropertyList([aObj class], &propertyCount);
-    NSMutableArray *arrNames = [NSMutableArray array];
-    NSMutableArray *arrTypes = [NSMutableArray array];
-    for (unsigned int i = 0; i < propertyCount; ++i)
-    {
-        objc_property_t property = properties[i];
-        const char * name = property_getName(property);
-        if( name)
-        {
-            const char *propType = getPropertyType(property);
-            [arrNames addObject:[NSString stringWithUTF8String:name]];
-            [arrTypes addObject:[NSString stringWithUTF8String:propType]];
-        }
-    }
-    free(properties);
-    
-    NSDictionary *targetDict = [self getTargetDict:objName];
-    
-    for (int i = 0; i < [arrNames count]; i++)
-    {
-        NSString* pName = [arrNames objectAtIndex:i];
-        id newValue = (id)[targetDict valueForKey:pName];
+	const char * cName = class_getName([aObj class]);
+	NSString *objName = [NSString stringWithUTF8String:cName];
+	
+	unsigned int propertyCount = 0;
+	objc_property_t *properties = class_copyPropertyList([aObj class], &propertyCount);
+	NSMutableArray *arrNames = [NSMutableArray array];
+	NSMutableArray *arrTypes = [NSMutableArray array];
+	for (unsigned int i = 0; i < propertyCount; ++i)
+	{
+		objc_property_t property = properties[i];
+		const char * name = property_getName(property);
+		if( name)
+		{
+			const char *propType = getPropertyType(property);
+			[arrNames addObject:[NSString stringWithUTF8String:name]];
+			[arrTypes addObject:[NSString stringWithUTF8String:propType]];
+		}
+	}
+	free(properties);
+	
+	NSDictionary *targetDict = [self getTargetDict:objName];
+	
+	for (int i = 0; i < [arrNames count]; i++)
+	{
+		NSString* pName = [arrNames objectAtIndex:i];
+		id newValue = (id)[targetDict valueForKey:pName];
 		if( newValue)
 		{
-            NSString* tName = [arrTypes objectAtIndex:i];
-            if( [tName isEqualToString:@"UITextView"] || [tName isEqualToString:@"UILabel"] || [tName isEqualToString:@"UITextField"])
-            {
-                [aObj setValue:newValue forKeyPath:[NSString stringWithFormat:@"%@.text",pName]];
-            }
-            else if ([tName isEqualToString:@"UIImageView"])
-            {
-                UIImage *im = [UIImage imageNamed: newValue];
-                [aObj setValue:im forKeyPath:[NSString stringWithFormat:@"%@.image",pName]];
-            }
-            else
-                [aObj setValue:newValue forKey:pName];
+			NSString* tName = [arrTypes objectAtIndex:i];
+			if( [tName isEqualToString:@"UITextView"] || [tName isEqualToString:@"UILabel"] || [tName isEqualToString:@"UITextField"])
+			{
+				[aObj setValue:newValue forKeyPath:[NSString stringWithFormat:@"%@.text",pName]];
+			}
+			else if ([tName isEqualToString:@"UIImageView"])
+			{
+				UIImage *im = [UIImage imageNamed: newValue];
+				[aObj setValue:im forKeyPath:[NSString stringWithFormat:@"%@.image",pName]];
+			}
+			else
+				[aObj setValue:newValue forKey:pName];
 		}
-    }
+	}
 }
 #pragma clang diagnostic pop
 
@@ -621,53 +732,53 @@ static const char * getPropertyType(objc_property_t property)
 
 -(void) loadDefaultPropertyValues:(id)aObj ObjectName:(NSString *)objName
 {
-    Class clazz = nil;
+	Class clazz = nil;
 	clazz = [NSClassFromString(objName) class];
-    unsigned int propertyCount = 0;
-    objc_property_t *properties = class_copyPropertyList([clazz class], &propertyCount);
-    NSDictionary *targetDict = [self getTargetDict:objName];
-    
-    for (unsigned int i = 0; i < propertyCount; ++i)
-    {
-        objc_property_t property = properties[i];
-        const char * name = property_getName(property);
-        if( name)
-        {
-            NSString* pName = [NSString stringWithUTF8String:name];
-            id newValue = (id)[targetDict valueForKey:pName];
-            if( newValue)
-            {
-                const char *attributes = property_getAttributes(property);
-                NSString *type = [NSString stringWithUTF8String:attributes];
-                if( [type occurencesOfSubstring:@"UITextView"] )
-                {
-                    [aObj setValue:newValue forKeyPath:[NSString stringWithFormat:@"%@.text",pName]];
-                }
-                else if( [type occurencesOfSubstring:@"UILabel"])
-                {
-                    [aObj setValue:newValue forKeyPath:[NSString stringWithFormat:@"%@.text",pName]];
-                }
-                else if( [type occurencesOfSubstring:@"UITextField"])
-                {
-                    [aObj setValue:newValue forKeyPath:[NSString stringWithFormat:@"%@.text",pName]];
-                }
-                else if( [type occurencesOfSubstring:@"UIImageView"])
-                {
-                    UIImage *im = [UIImage imageNamed: newValue];
-                    [aObj setValue:im forKeyPath:[NSString stringWithFormat:@"%@.image",pName]];
-                }
-                else if( [type occurencesOfSubstring:@"UIButton"])
-                {
-                    [aObj setValue:newValue forKeyPath:[NSString stringWithFormat:@"%@.titleLabel.text",pName]];
-                }
-                else
-                {
-                    [aObj setValue:newValue forKey:pName];
-                }
-            }
-        }
-    }
-    free(properties);
+	unsigned int propertyCount = 0;
+	objc_property_t *properties = class_copyPropertyList([clazz class], &propertyCount);
+	NSDictionary *targetDict = [self getTargetDict:objName];
+	
+	for (unsigned int i = 0; i < propertyCount; ++i)
+	{
+		objc_property_t property = properties[i];
+		const char * name = property_getName(property);
+		if( name)
+		{
+			NSString* pName = [NSString stringWithUTF8String:name];
+			id newValue = (id)[targetDict valueForKey:pName];
+			if( newValue)
+			{
+				const char *attributes = property_getAttributes(property);
+				NSString *type = [NSString stringWithUTF8String:attributes];
+				if( [type occurencesOfSubstring:@"UITextView"] )
+				{
+					[aObj setValue:newValue forKeyPath:[NSString stringWithFormat:@"%@.text",pName]];
+				}
+				else if( [type occurencesOfSubstring:@"UILabel"])
+				{
+					[aObj setValue:newValue forKeyPath:[NSString stringWithFormat:@"%@.text",pName]];
+				}
+				else if( [type occurencesOfSubstring:@"UITextField"])
+				{
+					[aObj setValue:newValue forKeyPath:[NSString stringWithFormat:@"%@.text",pName]];
+				}
+				else if( [type occurencesOfSubstring:@"UIImageView"])
+				{
+					UIImage *im = [UIImage imageNamed: newValue];
+					[aObj setValue:im forKeyPath:[NSString stringWithFormat:@"%@.image",pName]];
+				}
+				else if( [type occurencesOfSubstring:@"UIButton"])
+				{
+					[aObj setValue:newValue forKeyPath:[NSString stringWithFormat:@"%@.titleLabel.text",pName]];
+				}
+				else
+				{
+					[aObj setValue:newValue forKey:pName];
+				}
+			}
+		}
+	}
+	free(properties);
 }
 
 #pragma clang diagnostic pop
@@ -683,10 +794,10 @@ static const char * getPropertyType(objc_property_t property)
 		rect.origin.y =  [[buttonInfo objectForKey: @"y"] intValue];
 		rect.size.width = [[buttonInfo objectForKey: @"width"] intValue];
 		rect.size.height = [[buttonInfo objectForKey: @"height"] intValue];
-        if( self.iPad)
-        {
-            rect = [self CGRectMake:rect CGRectAdjust:kAdjustALLPAD];
-        }
+		if( self.iPad)
+		{
+			rect = [self CGRectMake:rect CGRectAdjust:kAdjustALLPAD];
+		}
 		btn.frame = rect;
 	}
 	
@@ -728,10 +839,10 @@ static const char * getPropertyType(objc_property_t property)
 		rect.origin.y =  [[labelInfo objectForKey: @"y"] intValue];
 		rect.size.width = [[labelInfo objectForKey: @"width"] intValue];
 		rect.size.height = [[labelInfo objectForKey: @"height"] intValue];
-        if( self.iPad)
-        {
-            rect = [self CGRectMake:rect CGRectAdjust:kAdjustALLPAD];
-        }
+		if( self.iPad)
+		{
+			rect = [self CGRectMake:rect CGRectAdjust:kAdjustALLPAD];
+		}
 		lbl.frame = rect;
 	}
 	
@@ -772,17 +883,17 @@ static const char * getPropertyType(objc_property_t property)
 		rect.origin.y =  [[imageViewInfo objectForKey: @"y"] intValue];
 		rect.size.width = [[imageViewInfo objectForKey: @"width"] intValue];
 		rect.size.height = [[imageViewInfo objectForKey: @"height"] intValue];
-        if( self.iPad)
-        {
-            rect = [self CGRectMake:rect CGRectAdjust:kAdjustALLPAD];
-        }
+		if( self.iPad)
+		{
+			rect = [self CGRectMake:rect CGRectAdjust:kAdjustALLPAD];
+		}
 		imv.frame = rect;
 	}
 }
 
 - (UIView *)loadViewWithFactory:(NSString *)viewName withFrame:(CGRect)frame
 {
-    Class clazz = [self loadClazz:viewName];
+	Class clazz = [self loadClazz:viewName];
 	
 	UIView *instance = [[clazz alloc] initWithFrame:frame];
 	return instance;
@@ -790,47 +901,47 @@ static const char * getPropertyType(objc_property_t property)
 
 - (UIViewController *)loadControllerWithFactory:(NSString *)controllerName                  // example, "AboutViewController"
 {
-    Class clazz = nil;
-    UIViewController *instance = nil;
-    NSString *nibName = [self getClassTitle:controllerName];                                // will return the subclass name if one exist, eg: "BBAboutViewController"
-    
-    if( ![controllerName isEqualToString:nibName] )                                         // if we have a subclass, test if its using a subclassed Nib
-    {
-        if([[NSBundle mainBundle] pathForResource:nibName ofType:@"nib"] != nil)            // test, see if the nib file exist for eg: "BBAboutViewController"
-        {                                                                                   // the nib file "BBAboutViewController" is found
-			clazz = [NSClassFromString(nibName) class];										// will get the ViewController's Sub-Class, BBAboutViewController
-            instance = [[clazz alloc] initWithNibName:nibName bundle:nil];                  // and initialize an instance of "BBAboutViewController" with "BBAboutViewController.xib" file
-        }
-        else                                                                                // The nib file BBAboutViewController was NOT found
-        {
- 			clazz = [NSClassFromString(nibName) class];										// will get the ViewController's Sub-Class, BBAboutViewController
-            instance = [[clazz alloc] initWithNibName:controllerName bundle:nil];           // So, initialize an instance of "BBAboutViewController" with "AboutViewController.xib" file
-        }
-    }
-    else
-    {
-		clazz = [NSClassFromString(controllerName) class];									// will get the ViewController's Class, AboutViewController
-        instance = [[clazz alloc] initWithNibName:nibName bundle:nil];                      // initialize an instance of "AboutViewController" with "AboutViewController.xib" file
-    }
+	Class clazz = nil;
+	UIViewController *instance = nil;
+	NSString *nibName = [self getClassTitle:controllerName];                                // will return the subclass name if one exist, eg: "BBAboutViewController"
 	
-    return instance;
+	if( ![controllerName isEqualToString:nibName] )                                         // if we have a subclass, test if its using a subclassed Nib
+	{
+		if([[NSBundle mainBundle] pathForResource:nibName ofType:@"nib"] != nil)            // test, see if the nib file exist for eg: "BBAboutViewController"
+		{                                                                                   // the nib file "BBAboutViewController" is found
+			clazz = [NSClassFromString(nibName) class];										// will get the ViewController's Sub-Class, BBAboutViewController
+			instance = [[clazz alloc] initWithNibName:nibName bundle:nil];                  // and initialize an instance of "BBAboutViewController" with "BBAboutViewController.xib" file
+		}
+		else                                                                                // The nib file BBAboutViewController was NOT found
+		{
+			clazz = [NSClassFromString(nibName) class];										// will get the ViewController's Sub-Class, BBAboutViewController
+			instance = [[clazz alloc] initWithNibName:controllerName bundle:nil];           // So, initialize an instance of "BBAboutViewController" with "AboutViewController.xib" file
+		}
+	}
+	else
+	{
+		clazz = [NSClassFromString(controllerName) class];									// will get the ViewController's Class, AboutViewController
+		instance = [[clazz alloc] initWithNibName:nibName bundle:nil];                      // initialize an instance of "AboutViewController" with "AboutViewController.xib" file
+	}
+	
+	return instance;
 }
 
 - (void)modFrame:(id)aObj theRect:(CGRect)rekt
 {
-    if ([aObj respondsToSelector:@selector(tag)])
-    {
-        int nTag = [aObj tag];
-        if( nTag >= 0)
-        {
-            nTag = (nTag == 0) ? -1 : -1 * nTag;                                            // mark that the obj was reSized
-            [aObj setTag:nTag];
-            if ([aObj respondsToSelector:@selector(frame)])
-            {
-                [aObj setFrame:rekt];
-            }
-        }
-    }
+	if ([aObj respondsToSelector:@selector(tag)])
+	{
+		NSInteger nTag = [aObj tag];
+		if( nTag >= 0)
+		{
+			nTag = (nTag == 0) ? -1 : -1 * nTag;                                            // mark that the obj was reSized
+			[aObj setTag:nTag];
+			if ([aObj respondsToSelector:@selector(frame)])
+			{
+				[aObj setFrame:rekt];
+			}
+		}
+	}
 }
 
 /*
@@ -903,374 +1014,374 @@ static const char * getPropertyType(objc_property_t property)
 #define AROUND(X,V) (X == V) ? TRUE : ( X > (V - 0.01*V) && X < (V + 0.01*V) ) ? TRUE : FALSE
 - (CGRect)CGRectMake:(CGRect)rekt CGRectAdjust:(int)options
 {
-    CGFloat xScale = xiPadScale;         // default scales against a 768 * 911 ipad area
-    CGFloat yScale = yiPadScale;
+	CGFloat xScale = xiPadScale;         // default scales against a 768 * 911 ipad area
+	CGFloat yScale = yiPadScale;
 	
-    int adjustment;
-    if( options > kAdjustCELL)
-    {
-        yScale = 2.4;
-        adjustment = options - kAdjustCELL;
-    }
-    else
-        adjustment = options;
-    
-    BOOL X = (adjustment == kAdjustX || adjustment == kAdjustXY || adjustment == kAdjustXPAD || adjustment == kAdjustXYPAD) ? YES : NO;
-    BOOL Y = (adjustment == kAdjustY || adjustment == kAdjustXY || adjustment == kAdjustYPAD || adjustment == kAdjustXYPAD  || adjustment == kAdjustY568) ? YES : NO;
-    BOOL W = (adjustment == kAdjustWidth || adjustment == kAdjustWH || adjustment == kAdjustWHPAD || adjustment == kAdjustWPAD) ? YES : NO;
-    BOOL H = (adjustment == kAdjustHeight || adjustment == kAdjustHPAD || adjustment == kAdjustWHPAD || adjustment == kAdjustWH || adjustment == kAdjustH568) ? YES : NO;
-    
-    BOOL PAD = (adjustment > kAdjustBASEPAD && adjustment <= kAdjustALLPAD) ? YES : NO;
-    BOOL P568= (adjustment >= kAdjust568 && adjustment <= kAdjustH568 ) ? YES : NO;
-    
-    BOOL ALL = (adjustment == kAdjustALL || adjustment == kAdjustALLPAD || (X && Y && W && H) ) ? YES : NO;
-    
-    if( [UIDevice deviceType] == UIDeviceType_iPhone568 )
-    {
-        if( Y && !PAD )
-        {
-            rekt.origin.y = rekt.origin.y + kiPhone568HeightPadding;
-        }
-        if( H && !PAD)
-        {
-            rekt.size.height = rekt.size.height + kiPhone568HeightPadding;
-        }
-    }
-    else if( self.iPad && (adjustment < kAdjust568))
-    {
-        
-        if( ALL && !P568 )
-        {
-            rekt.origin.x = xScale * rekt.origin.x;
-            if( AROUND((rekt.origin.y + rekt.size.height),460) && (options < kAdjustCELL))
-            {
-                yScale = yScale - 0.3;              // should scale to 2.18, which is 1004/460 ratio
-            }
-            rekt.origin.y = yScale * rekt.origin.y;
-            
-            if( rekt.size.width == 320)
-                rekt.size.width = 768;
-            else
-                rekt.size.width = xScale * rekt.size.width;
-            
-            if( rekt.size.height == 480)
-                rekt.size.height = 1024;
-            else if( rekt.size.height == 460)
-                rekt.size.height = 1004;
-            else
-            {
-                rekt.size.height = yScale * rekt.size.height;
-            }
-        }
-        else
-        {
-            if( Y && H && !P568 )
-            {
-                if( AROUND((rekt.origin.y + rekt.size.height),460)  && (options < kAdjustCELL))
-                {
-                    yScale = yScale - 0.3;
-                }
-            }
-            
-            if( X && !P568 )
-            {
-                rekt.origin.x = xScale * rekt.origin.x;
-            }
-            if( Y && !P568 )
-            {
-                rekt.origin.y = yScale * rekt.origin.y;
-            }
-            if( W && !P568 )
-            {
-                if( rekt.size.width == 320)
-                    rekt.size.width = 768;
-                else
-                    rekt.size.width = xScale * rekt.size.width;
-            }
-            if( H && !P568 )
-            {
-                if( rekt.size.height == 480)
-                    rekt.size.height = 1024;
-                else if( rekt.size.height == 460)
-                    rekt.size.height = 1004;
-                else
-                    rekt.size.height = yScale * rekt.size.height;
-            }
-        }
-    }
-    return rekt;
+	int adjustment;
+	if( options > kAdjustCELL)
+	{
+		yScale = 2.4;
+		adjustment = options - kAdjustCELL;
+	}
+	else
+		adjustment = options;
+	
+	BOOL X = (adjustment == kAdjustX || adjustment == kAdjustXY || adjustment == kAdjustXPAD || adjustment == kAdjustXYPAD) ? YES : NO;
+	BOOL Y = (adjustment == kAdjustY || adjustment == kAdjustXY || adjustment == kAdjustYPAD || adjustment == kAdjustXYPAD  || adjustment == kAdjustY568) ? YES : NO;
+	BOOL W = (adjustment == kAdjustWidth || adjustment == kAdjustWH || adjustment == kAdjustWHPAD || adjustment == kAdjustWPAD) ? YES : NO;
+	BOOL H = (adjustment == kAdjustHeight || adjustment == kAdjustHPAD || adjustment == kAdjustWHPAD || adjustment == kAdjustWH || adjustment == kAdjustH568) ? YES : NO;
+	
+	BOOL PAD = (adjustment > kAdjustBASEPAD && adjustment <= kAdjustALLPAD) ? YES : NO;
+	BOOL P568= (adjustment >= kAdjust568 && adjustment <= kAdjustH568 ) ? YES : NO;
+	
+	BOOL ALL = (adjustment == kAdjustALL || adjustment == kAdjustALLPAD || (X && Y && W && H) ) ? YES : NO;
+	
+	if( [UIDevice deviceType] == UIDeviceType_iPhone568 )
+	{
+		if( Y && !PAD )
+		{
+			rekt.origin.y = rekt.origin.y + kiPhone568HeightPadding;
+		}
+		if( H && !PAD)
+		{
+			rekt.size.height = rekt.size.height + kiPhone568HeightPadding;
+		}
+	}
+	else if( self.iPad && (adjustment < kAdjust568))
+	{
+		
+		if( ALL && !P568 )
+		{
+			rekt.origin.x = xScale * rekt.origin.x;
+			if( AROUND((rekt.origin.y + rekt.size.height),460) && (options < kAdjustCELL))
+			{
+				yScale = yScale - 0.3;              // should scale to 2.18, which is 1004/460 ratio
+			}
+			rekt.origin.y = yScale * rekt.origin.y;
+			
+			if( rekt.size.width == 320)
+				rekt.size.width = 768;
+			else
+				rekt.size.width = xScale * rekt.size.width;
+			
+			if( rekt.size.height == 480)
+				rekt.size.height = 1024;
+			else if( rekt.size.height == 460)
+				rekt.size.height = 1004;
+			else
+			{
+				rekt.size.height = yScale * rekt.size.height;
+			}
+		}
+		else
+		{
+			if( Y && H && !P568 )
+			{
+				if( AROUND((rekt.origin.y + rekt.size.height),460)  && (options < kAdjustCELL))
+				{
+					yScale = yScale - 0.3;
+				}
+			}
+			
+			if( X && !P568 )
+			{
+				rekt.origin.x = xScale * rekt.origin.x;
+			}
+			if( Y && !P568 )
+			{
+				rekt.origin.y = yScale * rekt.origin.y;
+			}
+			if( W && !P568 )
+			{
+				if( rekt.size.width == 320)
+					rekt.size.width = 768;
+				else
+					rekt.size.width = xScale * rekt.size.width;
+			}
+			if( H && !P568 )
+			{
+				if( rekt.size.height == 480)
+					rekt.size.height = 1024;
+				else if( rekt.size.height == 460)
+					rekt.size.height = 1004;
+				else
+					rekt.size.height = yScale * rekt.size.height;
+			}
+		}
+	}
+	return rekt;
 	
 }
 
 - (NSString *)properNibName:(NSString *)nibName
 {
-    NSString *rValue = nibName;
-    
-    if (self.iPad)
-    {
-        NSArray *listItems = [nibName componentsSeparatedByString:@"_iPAD"];
-        if( [listItems count] == 1)                                                      // not designated with iPAD suffix
-        {
-            rValue = [nibName stringByAppendingString:@"_iPAD"];
-        }
-    }
-    
-    return rValue;
+	NSString *rValue = nibName;
+	
+	if (self.iPad)
+	{
+		NSArray *listItems = [nibName componentsSeparatedByString:@"_iPAD"];
+		if( [listItems count] == 1)                                                      // not designated with iPAD suffix
+		{
+			rValue = [nibName stringByAppendingString:@"_iPAD"];
+		}
+	}
+	
+	return rValue;
 }
 
 
 - (UIImage *) imageWithContentsOfFile:(NSString *)path
 {
 	UIImage* pImage = nil;
-    
-    if (path)
-    {
-        BOOL jpg = ( [path hasSuffix:@".jpg"] ) ? YES : NO;
-        BOOL png = ( [path hasSuffix:@".png"] ) ? YES : NO;
-        
-        if( jpg || png )        // looking for a suffix
-        {
-            if( [UIDevice deviceType] == UIDeviceType_iPhone568 )                           // look for iPhone 5 images
-            {
-                NSArray *listItems = [path componentsSeparatedByString:(png) ? @".png" : @".jpg"];
-                NSString *newPath = [[listItems objectAtIndex:0] stringByAppendingString:(png) ? @"568.png" : @"568.jpg"];
-                BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:newPath];
-                if(fileExists)
-                    pImage = [UIImage imageWithContentsOfFile: newPath];
-            }
-            else if ( self.iPad)
-            {
-                NSArray *listItems = [path componentsSeparatedByString:(png) ? @".png" : @".jpg"];
-                NSString *newPath = [[listItems objectAtIndex:0] stringByAppendingString:(png) ? @"_iPAD.png" : @"_iPAD.jpg"];
-                BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:newPath];
-                if(fileExists)
-                    pImage = [UIImage imageWithContentsOfFile: newPath];
-            }
-        }
-        else // no suffix
-        {
-            if( [UIDevice deviceType] == UIDeviceType_iPhone568 )                           // look for iPhone 5 images
-            {
-                NSString *newPath = [path stringByAppendingString:@"568.png"];
-                BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:newPath];
-                if(fileExists)
-                    pImage = [UIImage imageWithContentsOfFile: newPath];
-                else
-                {
-                    NSString *newPath = [path stringByAppendingString:@"568.jpg"];
-                    BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:newPath];
-                    if(fileExists)
-                        pImage = [UIImage imageWithContentsOfFile: newPath];
-                }
-            }
-            else if ( self.iPad)
-            {
-                NSString *newPath = [path stringByAppendingString:@"_iPAD.png"];
-                BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:newPath];
-                if(fileExists)
-                    pImage = [UIImage imageWithContentsOfFile: newPath];
-                else
-                {
-                    NSString *newPath = [path stringByAppendingString:@"_iPAD.jpg"];
-                    BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:newPath];
-                    if(fileExists)
-                        pImage = [UIImage imageWithContentsOfFile: newPath];
-                }
-            }
-        }
-        // fell thru...=> not a iPhone 5, and not an iPad
-		
-        if (pImage == nil)
-        {
-            if( png )
-            {
-                BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:path];
-                if(fileExists)
-                {
-                    pImage = [UIImage imageWithContentsOfFile: path];
-                }
-                else
-                {
-                    NSArray *listItems = [path componentsSeparatedByString:@".png"];
-                    NSString *newPath = [[listItems objectAtIndex:0] stringByAppendingString:@".jpg"];
-                    BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:newPath];
-                    if(fileExists)
-                        pImage = [UIImage imageWithContentsOfFile: newPath];
-					
-                }
-            }
-            else // assuming jpg
-            {
-                BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:path];
-                if(fileExists)
-                {
-                    pImage = [UIImage imageWithContentsOfFile: path];
-                }
-                else
-                {
-                    NSArray *listItems = [path componentsSeparatedByString:@".jpg"];
-                    NSString *newPath = [[listItems objectAtIndex:0] stringByAppendingString:@".png"];
-                    BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:newPath];
-                    if(fileExists)
-                        pImage = [UIImage imageWithContentsOfFile: newPath];
-                }
-            }
-        }
-    }
 	
-    return pImage;
+	if (path)
+	{
+		BOOL jpg = ( [path hasSuffix:@".jpg"] ) ? YES : NO;
+		BOOL png = ( [path hasSuffix:@".png"] ) ? YES : NO;
+		
+		if( jpg || png )        // looking for a suffix
+		{
+			if( [UIDevice deviceType] == UIDeviceType_iPhone568 )                           // look for iPhone 5 images
+			{
+				NSArray *listItems = [path componentsSeparatedByString:(png) ? @".png" : @".jpg"];
+				NSString *newPath = [[listItems objectAtIndex:0] stringByAppendingString:(png) ? @"568.png" : @"568.jpg"];
+				BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:newPath];
+				if(fileExists)
+					pImage = [UIImage imageWithContentsOfFile: newPath];
+			}
+			else if ( self.iPad)
+			{
+				NSArray *listItems = [path componentsSeparatedByString:(png) ? @".png" : @".jpg"];
+				NSString *newPath = [[listItems objectAtIndex:0] stringByAppendingString:(png) ? @"_iPAD.png" : @"_iPAD.jpg"];
+				BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:newPath];
+				if(fileExists)
+					pImage = [UIImage imageWithContentsOfFile: newPath];
+			}
+		}
+		else // no suffix
+		{
+			if( [UIDevice deviceType] == UIDeviceType_iPhone568 )                           // look for iPhone 5 images
+			{
+				NSString *newPath = [path stringByAppendingString:@"568.png"];
+				BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:newPath];
+				if(fileExists)
+					pImage = [UIImage imageWithContentsOfFile: newPath];
+				else
+				{
+					NSString *newPath = [path stringByAppendingString:@"568.jpg"];
+					BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:newPath];
+					if(fileExists)
+						pImage = [UIImage imageWithContentsOfFile: newPath];
+				}
+			}
+			else if ( self.iPad)
+			{
+				NSString *newPath = [path stringByAppendingString:@"_iPAD.png"];
+				BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:newPath];
+				if(fileExists)
+					pImage = [UIImage imageWithContentsOfFile: newPath];
+				else
+				{
+					NSString *newPath = [path stringByAppendingString:@"_iPAD.jpg"];
+					BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:newPath];
+					if(fileExists)
+						pImage = [UIImage imageWithContentsOfFile: newPath];
+				}
+			}
+		}
+		// fell thru...=> not a iPhone 5, and not an iPad
+		
+		if (pImage == nil)
+		{
+			if( png )
+			{
+				BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:path];
+				if(fileExists)
+				{
+					pImage = [UIImage imageWithContentsOfFile: path];
+				}
+				else
+				{
+					NSArray *listItems = [path componentsSeparatedByString:@".png"];
+					NSString *newPath = [[listItems objectAtIndex:0] stringByAppendingString:@".jpg"];
+					BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:newPath];
+					if(fileExists)
+						pImage = [UIImage imageWithContentsOfFile: newPath];
+					
+				}
+			}
+			else // assuming jpg
+			{
+				BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:path];
+				if(fileExists)
+				{
+					pImage = [UIImage imageWithContentsOfFile: path];
+				}
+				else
+				{
+					NSArray *listItems = [path componentsSeparatedByString:@".jpg"];
+					NSString *newPath = [[listItems objectAtIndex:0] stringByAppendingString:@".png"];
+					BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:newPath];
+					if(fileExists)
+						pImage = [UIImage imageWithContentsOfFile: newPath];
+				}
+			}
+		}
+	}
+	
+	return pImage;
 }
 
 - (UIImage *) imageNamed:(NSString *)name                                                   // must NOT be a path, and NO periods except to end in the suffix .png
 {
 	UIImage* pImage = nil;
-    
-    if( name )
-    {
-        BOOL jpg = ( [name hasSuffix:@".jpg"] ) ? YES : NO;
-        BOOL png = ( [name hasSuffix:@".png"] ) ? YES : NO;
-        
-        if( jpg || png )                                                                    // a specific file type
-        {
-            if( [UIDevice deviceType] == UIDeviceType_iPhone568 )                           // look for iPhone 5 images
-            {
-                NSArray *listItems = [name componentsSeparatedByString:@"."];
-                NSString *newName = [[listItems objectAtIndex:0] stringByAppendingString:(png) ? @"568.png" : @"568.jpg"];
-                pImage = [UIImage imageNamed:newName];
-                if(pImage)
-                    return pImage;
-                else
-                {
-                    pImage = [UIImage imageNamed:name];
-                    return pImage;
-                }
-            }
-            else if ( self.iPad)
-            {
-                NSArray *listItems = [name componentsSeparatedByString:@"."];
-                NSString *newName = [[listItems objectAtIndex:0] stringByAppendingString:(png) ? @"_iPAD.png" : @"_iPAD.jpg"];
-                pImage = [UIImage imageNamed:newName];
-                if(pImage)
-                    return pImage;
-                else
-                {
-                    pImage = [UIImage imageNamed:name];
-                    return pImage;
-                }
-            }
-        }
-        else        // no suffix
-        {
-            if( [UIDevice deviceType] == UIDeviceType_iPhone568 )                           // look for iPhone 5 images
-            {
-                NSString *newName = [name stringByAppendingString:@"568.png"];
-                pImage = [UIImage imageNamed:newName];
-                if(pImage)
-                {
-                    return pImage;
-                }
-                else
-                {
-                    NSString *jName = [name stringByAppendingString:@"568.jpg"];            // test for jpeg image
-                    pImage = [UIImage imageNamed:jName];
-                    if(pImage)
-                    {
-                        return pImage;
-                    }
-                    else                                                                    // just retrieve non-568 image
-                    {
-                        pImage = [UIImage imageNamed:name];
-                        return pImage;
-                    }
-                }
-            }
-            else if ( self.iPad)
-            {
-                NSString *newName = [name stringByAppendingString:@"_iPAD.png"];
-                pImage = [UIImage imageNamed:newName];
-                if(pImage)
-                    return pImage;
-                else
-                {
-                    NSString *jName = [name stringByAppendingString:@"_iPAD.jpg"];            // test for jpeg image
-                    pImage = [UIImage imageNamed:jName];
-                    if(pImage)
-                    {
-                        return pImage;
-                    }
-                    else                                                                    // just retrieve non-iPAD image
-                    {
-                        pImage = [UIImage imageNamed:name];
-                        return pImage;
-                    }
-                }
-            }
-        }
-        
-        // fell thru...=> not a iPhone 5, and not an iPad
-        
-        if (pImage == nil)
-        {
-            if( png )
-            {
-                pImage = [UIImage imageNamed:name];
-                if(!pImage)
-                {
-                    NSArray *listItems = [name componentsSeparatedByString:@".png"];
-                    NSString *newName = [[listItems objectAtIndex:0] stringByAppendingString:@".jpg"];
-                    pImage = [UIImage imageNamed:newName];
-                }
-            }
-            else // assuming jpg
-            {
-                pImage = [UIImage imageWithContentsOfFile: name];
-                if(!pImage)
-                {
-                    NSArray *listItems = [name componentsSeparatedByString:@".jpg"];
-                    NSString *newName = [[listItems objectAtIndex:0] stringByAppendingString:@".png"];
-                    pImage = [UIImage imageNamed:newName];
-                }
-            }
-        }
-    }
-    return pImage;
+	
+	if( name )
+	{
+		BOOL jpg = ( [name hasSuffix:@".jpg"] ) ? YES : NO;
+		BOOL png = ( [name hasSuffix:@".png"] ) ? YES : NO;
+		
+		if( jpg || png )                                                                    // a specific file type
+		{
+			if( [UIDevice deviceType] == UIDeviceType_iPhone568 )                           // look for iPhone 5 images
+			{
+				NSArray *listItems = [name componentsSeparatedByString:@"."];
+				NSString *newName = [[listItems objectAtIndex:0] stringByAppendingString:(png) ? @"568.png" : @"568.jpg"];
+				pImage = [UIImage imageNamed:newName];
+				if(pImage)
+					return pImage;
+				else
+				{
+					pImage = [UIImage imageNamed:name];
+					return pImage;
+				}
+			}
+			else if ( self.iPad)
+			{
+				NSArray *listItems = [name componentsSeparatedByString:@"."];
+				NSString *newName = [[listItems objectAtIndex:0] stringByAppendingString:(png) ? @"_iPAD.png" : @"_iPAD.jpg"];
+				pImage = [UIImage imageNamed:newName];
+				if(pImage)
+					return pImage;
+				else
+				{
+					pImage = [UIImage imageNamed:name];
+					return pImage;
+				}
+			}
+		}
+		else        // no suffix
+		{
+			if( [UIDevice deviceType] == UIDeviceType_iPhone568 )                           // look for iPhone 5 images
+			{
+				NSString *newName = [name stringByAppendingString:@"568.png"];
+				pImage = [UIImage imageNamed:newName];
+				if(pImage)
+				{
+					return pImage;
+				}
+				else
+				{
+					NSString *jName = [name stringByAppendingString:@"568.jpg"];            // test for jpeg image
+					pImage = [UIImage imageNamed:jName];
+					if(pImage)
+					{
+						return pImage;
+					}
+					else                                                                    // just retrieve non-568 image
+					{
+						pImage = [UIImage imageNamed:name];
+						return pImage;
+					}
+				}
+			}
+			else if ( self.iPad)
+			{
+				NSString *newName = [name stringByAppendingString:@"_iPAD.png"];
+				pImage = [UIImage imageNamed:newName];
+				if(pImage)
+					return pImage;
+				else
+				{
+					NSString *jName = [name stringByAppendingString:@"_iPAD.jpg"];            // test for jpeg image
+					pImage = [UIImage imageNamed:jName];
+					if(pImage)
+					{
+						return pImage;
+					}
+					else                                                                    // just retrieve non-iPAD image
+					{
+						pImage = [UIImage imageNamed:name];
+						return pImage;
+					}
+				}
+			}
+		}
+		
+		// fell thru...=> not a iPhone 5, and not an iPad
+		
+		if (pImage == nil)
+		{
+			if( png )
+			{
+				pImage = [UIImage imageNamed:name];
+				if(!pImage)
+				{
+					NSArray *listItems = [name componentsSeparatedByString:@".png"];
+					NSString *newName = [[listItems objectAtIndex:0] stringByAppendingString:@".jpg"];
+					pImage = [UIImage imageNamed:newName];
+				}
+			}
+			else // assuming jpg
+			{
+				pImage = [UIImage imageWithContentsOfFile: name];
+				if(!pImage)
+				{
+					NSArray *listItems = [name componentsSeparatedByString:@".jpg"];
+					NSString *newName = [[listItems objectAtIndex:0] stringByAppendingString:@".png"];
+					pImage = [UIImage imageNamed:newName];
+				}
+			}
+		}
+	}
+	return pImage;
 }
 
 
 -(UIColor *) getBackgroundFromProperties:(NSString *)property
 {
-    NSDictionary *target;
-    UIColor *result = nil;
-    
-    target = [self getTargetDict:property];
-    
-    NSString *value = [target objectForKey:@"backgroundColor"];
-    if( value )
-    {
-        if( [value hasSuffix:@".png"] )         // a specific file
-        {
-            if( [UIDevice deviceType] == UIDeviceType_iPhone568 )       // look for iPhone 5 images
-            {
-                NSArray *listItems = [value componentsSeparatedByString:@"."];
-                NSString *newValue = [[listItems objectAtIndex:0] stringByAppendingString:@"568.png"];
-                result = [UIColor colorWithPatternImage:[UIImage imageNamed: newValue]];
-            }
-            else
-                result = [UIColor colorWithPatternImage:[UIImage imageNamed: value]];
-        }
-        else
-        {
-            SEL selector = NSSelectorFromString(value);
-            if ([UIColor respondsToSelector:selector])
-            {
-                result = [UIColor performSelector:selector withObject:nil];
-            }
-            else                // fails, default to clearColor
-                result = [UIColor clearColor];
-        }
-        
-    }
-    return result;
+	NSDictionary *target;
+	UIColor *result = nil;
+	
+	target = [self getTargetDict:property];
+	
+	NSString *value = [target objectForKey:@"backgroundColor"];
+	if( value )
+	{
+		if( [value hasSuffix:@".png"] )         // a specific file
+		{
+			if( [UIDevice deviceType] == UIDeviceType_iPhone568 )       // look for iPhone 5 images
+			{
+				NSArray *listItems = [value componentsSeparatedByString:@"."];
+				NSString *newValue = [[listItems objectAtIndex:0] stringByAppendingString:@"568.png"];
+				result = [UIColor colorWithPatternImage:[UIImage imageNamed: newValue]];
+			}
+			else
+				result = [UIColor colorWithPatternImage:[UIImage imageNamed: value]];
+		}
+		else
+		{
+			SEL selector = NSSelectorFromString(value);
+			if ([UIColor respondsToSelector:selector])
+			{
+				result = [UIColor performSelector:selector withObject:nil];
+			}
+			else                // fails, default to clearColor
+				result = [UIColor clearColor];
+		}
+		
+	}
+	return result;
 }
 
 - (BOOL) isPortraitOrientation
@@ -1285,12 +1396,12 @@ static const char * getPropertyType(objc_property_t property)
 
 - (UIFont*) fontWithSize:(CGFloat)fontSize bold:(BOOL)bold italic:(BOOL)italic
 {
-    //	NSArray* familyNames = [UIFont familyNames];
-    //	NSArray* fontNames = [UIFont fontNamesForFamilyName:@"Helvetica"];
-    //	NSArray* fontNames = [UIFont fontNamesForFamilyName:@"Helvetica Neue"];
+	//	NSArray* familyNames = [UIFont familyNames];
+	//	NSArray* fontNames = [UIFont fontNamesForFamilyName:@"Helvetica"];
+	//	NSArray* fontNames = [UIFont fontNamesForFamilyName:@"Helvetica Neue"];
 	
-    //	return [UIFont fontWithName:@"Courier New" size:fontSize];
-    //	return [UIFont fontWithName:@"Helvetica Neue" size:fontSize];
+	//	return [UIFont fontWithName:@"Courier New" size:fontSize];
+	//	return [UIFont fontWithName:@"Helvetica Neue" size:fontSize];
 	
 	if (bold && italic)
 	{
@@ -1357,9 +1468,9 @@ static const char * getPropertyType(objc_property_t property)
 						text:(NSString*)text
 {
 	//Create and configure a label.
-    UIFont *font = [self fontWithSize:fontSize bold:bold italic:italic];
+	UIFont *font = [self fontWithSize:fontSize bold:bold italic:italic];
 	
-    // Views are drawn most efficiently when they are opaque and do not have a clear background, so set these defaults.  To show selection
+	// Views are drawn most efficiently when they are opaque and do not have a clear background, so set these defaults.  To show selection
 	// properly, however, the views need to be transparent (so that the selection color shows through).  This is handled in
 	// setSelected:animated:.
 	UILabel* label = [[UILabel alloc] initWithFrame:CGRectZero];
@@ -1377,7 +1488,7 @@ static const char * getPropertyType(objc_property_t property)
 		label.text = text;
 	}
 	
-    //	DebugLog(@"Using font %@", font.fontName);
+	//	DebugLog(@"Using font %@", font.fontName);
 	
 	return label;
 }
@@ -1390,16 +1501,16 @@ static const char * getPropertyType(objc_property_t property)
 	//Create and configure a TextView.
 	UIFont *font;
 	
-    if (bold)
+	if (bold)
 	{
-        font = [UIFont boldSystemFontOfSize:fontSize];
-    }
+		font = [UIFont boldSystemFontOfSize:fontSize];
+	}
 	else
 	{
-        font = [UIFont systemFontOfSize:fontSize];
-    }
-    
-    
+		font = [UIFont systemFontOfSize:fontSize];
+	}
+	
+	
 	// Views are drawn most efficiently when they are opaque and do not have a clear background, so set these defaults.  To show selection
 	// properly, however, the views need to be transparent (so that the selection color shows through).  This is handled in
 	// setSelected:animated:.
@@ -1450,7 +1561,7 @@ static const char * getPropertyType(objc_property_t property)
 	}
 	else if (hours > 1)
 	{
-		hoursString = [NSString stringWithFormat:@"%d hrs.", hours];
+		hoursString = [NSString stringWithFormat:@"%ld hrs.", (long)hours];
 	}
 	
 	if (minutes == 1)
@@ -1459,7 +1570,7 @@ static const char * getPropertyType(objc_property_t property)
 	}
 	else if (minutes > 1)
 	{
-		minutesString = [NSString stringWithFormat:@"%d mins.", minutes];
+		minutesString = [NSString stringWithFormat:@"%ld mins.", (long)minutes];
 	}
 	
 	return [NSString stringWithFormat:@"%@ %@", hoursString, minutesString];
@@ -1479,7 +1590,7 @@ static const char * getPropertyType(objc_property_t property)
 	}
 	else if (hours > 1)
 	{
-		hoursString = [NSString stringWithFormat:@"%d hrs.", hours];
+		hoursString = [NSString stringWithFormat:@"%ld hrs.", (long)hours];
 	}
 	
 	if (minutes == 1)
@@ -1488,7 +1599,7 @@ static const char * getPropertyType(objc_property_t property)
 	}
 	else if (minutes > 1)
 	{
-		minutesString = [NSString stringWithFormat:@"%d mins.", minutes];
+		minutesString = [NSString stringWithFormat:@"%ld mins.", (long)minutes];
 	}
 	
 	if ([hoursString isEqualToString:@""] && [minutesString isEqualToString:@""])
@@ -1498,6 +1609,51 @@ static const char * getPropertyType(objc_property_t property)
 	return [NSString stringWithFormat:@"%@ %@", hoursString, minutesString];
 }
 
+- (CGSize)sizeWithMyFont:(UIFont *)font withText:(NSString *)text withWidth:(CGFloat)width
+{
+	NSAttributedString *attributedText = [[NSAttributedString alloc] initWithString:text attributes:@ { NSFontAttributeName: font}];
+	
+	CGRect rect = [attributedText boundingRectWithSize:(CGSize){width, CGFLOAT_MAX}
+											   options:NSStringDrawingUsesLineFragmentOrigin
+											   context:nil];
+	CGSize size = rect.size;
+	return size;
+	
+}
+
+- (CGSize)sizeWithMyFont:(UIFont *)font withText:(NSString *)text withWidth:(CGFloat)width lineBreakMode:(NSLineBreakMode)lineBreakMode
+{
+	NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+	paragraphStyle.lineBreakMode = lineBreakMode;
+	
+	NSAttributedString *attributedText = [[NSAttributedString alloc] initWithString:text attributes:@ { NSFontAttributeName: font , NSParagraphStyleAttributeName: paragraphStyle}];
+	
+	CGRect rect = [attributedText boundingRectWithSize:(CGSize){width, CGFLOAT_MAX}
+											   options:NSStringDrawingUsesLineFragmentOrigin
+											   context:nil];
+	CGSize size = rect.size;
+	return size;
+}
+
+-(CGSize)frameForText:(NSString*)text sizeWithFont:(UIFont*)font constrainedToSize:(CGSize)size
+{
+	
+	NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+	paragraphStyle.lineBreakMode = NSLineBreakByWordWrapping;
+	
+	NSDictionary *attributesDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+										  font, NSFontAttributeName,
+										  nil];
+	
+	
+	CGRect frame = [text boundingRectWithSize:size
+									  options:(NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading)
+								   attributes:attributesDictionary
+									  context:nil];
+	
+	// This contains both height and width.
+	return frame.size;
+}
 
 //
 // Returns the size of the given title taking into account a font size reduction
@@ -1510,17 +1666,19 @@ static const char * getPropertyType(objc_property_t property)
 	
 	if (title != nil)
 	{
-		//CGSize titleSize = [title sizeWithFont:finalFont constrainedToSize:CGSizeMake(width, FLT_MAX) lineBreakMode:NSLineBreakByWordWrapping];
-		CGSize titleSize = [title sizeWithFont:finalFont constrainedToSize:CGSizeMake(width, FLT_MAX) lineBreakMode:NSLineBreakByWordWrapping];       // iOS 6
+		
+		CGSize titleSize = [self sizeWithMyFont:finalFont withText:title withWidth:width lineBreakMode:NSLineBreakByWordWrapping];
+		
+		//CGSize titleSize = [title sizeWithFont:finalFont constrainedToSize:CGSizeMake(width, FLT_MAX) lineBreakMode:NSLineBreakByWordWrapping];       // iOS 6
 		
 		// Cast the size to NSInteger to avoid fractional offsets.
-		titleSize = CGSizeMake((NSInteger)titleSize.width, (NSInteger)titleSize.height);
+		titleSize = CGSizeMake( ceilf(titleSize.width), ceilf(titleSize.height) );
 		
 		if (titleSize.height > self.titleLineHeightLarge)
 		{
 			finalFont = self.titleLabelPrototypeSmall.font;
-			//titleSize = [title sizeWithFont:finalFont constrainedToSize:CGSizeMake(width, FLT_MAX) lineBreakMode:NSLineBreakByWordWrapping];
-			titleSize = [title sizeWithFont:finalFont constrainedToSize:CGSizeMake(width, FLT_MAX) lineBreakMode:NSLineBreakByWordWrapping];       // iOS 6
+			titleSize = [self sizeWithMyFont:finalFont withText:title withWidth:width lineBreakMode:NSLineBreakByWordWrapping];
+			titleSize = CGSizeMake( ceilf(titleSize.width), ceilf(titleSize.height) );
 			
 			// Do not let the title wrap passed the max lines.
 			if (titleSize.height > self.titleMaxHeight)
@@ -1589,7 +1747,17 @@ static const char * getPropertyType(objc_property_t property)
 	{
 		UIFont* outFont = nil;
 		toReturn.size = [self titleSize:title withWidth:maxWidth outFont:&outFont];
-		[title drawInRect:toReturn withFont:outFont lineBreakMode:NSLineBreakByTruncatingTail alignment:NSTextAlignmentLeft];
+		
+		NSMutableParagraphStyle *textStyle = [[NSMutableParagraphStyle defaultParagraphStyle] mutableCopy];
+		textStyle.lineBreakMode = NSLineBreakByTruncatingTail;
+		textStyle.alignment = NSTextAlignmentLeft;
+		
+		
+		// iOS 7 way
+		[title drawInRect:toReturn withAttributes:@{NSFontAttributeName:outFont, NSParagraphStyleAttributeName:textStyle}];
+		
+		
+		//[title drawInRect:toReturn withFont:outFont lineBreakMode:NSLineBreakByTruncatingTail alignment:NSTextAlignmentLeft];
 	}
 	
 	return toReturn;
@@ -1757,17 +1925,17 @@ static const char * getPropertyType(objc_property_t property)
 //
 // A helper method to set just the line break mode of the given UIButton.
 //
-- (void) button:(UIButton*)button setLineBreakMode:(UILineBreakMode)lineBreakMode
+- (void) button:(UIButton*)button setLineBreakMode:(NSLineBreakMode)lineBreakMode
 {
-	[UIUtil button:(UIButton*)button setLineBreakMode:(UILineBreakMode)lineBreakMode];
+	[UIUtil button:(UIButton*)button setLineBreakMode:(NSLineBreakMode)lineBreakMode];
 }
 
 //
 // A helper method to set just the text alignment of the given UIButton.
 //
-- (void) button:(UIButton*)button setTextAlignment:(UITextAlignment)textAlignment
+- (void) button:(UIButton*)button setTextAlignment:(NSTextAlignment)textAlignment
 {
-	[UIUtil button:(UIButton*)button setTextAlignment:(UITextAlignment)textAlignment];
+	[UIUtil button:(UIButton*)button setTextAlignment:(NSTextAlignment)textAlignment];
 }
 
 //
